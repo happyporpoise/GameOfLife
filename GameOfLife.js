@@ -1,0 +1,263 @@
+"use strict";
+
+function mod(n, m) {
+  return ((n % m) + m) % m;
+}
+
+class Cell {
+  static width = 10;
+  static height = 10;
+
+  constructor(context, gridX, gridY) {
+    this.context = context;
+
+    // Store the position of this cell in the grid
+    this.gridX = gridX;
+    this.gridY = gridY;
+
+    // Make random cells alive
+    this.alive = Math.random() > 0.9;
+
+    // const initialCells = [
+    //   [74, 33],
+    //   [75, 31],
+    //   [75, 33],
+    //   [76, 32],
+    //   [76, 33],
+    // ]; // a glider
+    // function isAnInitialCell(x, y) {
+    //   for (let i = 0; i < initialCells.length; i++) {
+    //     if (initialCells[i][0] === x && initialCells[i][1] === y) {
+    //       return true;
+    //     }
+    //   }
+    //   return false;
+    // }
+    // this.alive = isAnInitialCell(gridX, gridY);
+  }
+
+  draw() {
+    // Draw a simple square
+    this.context.fillStyle = this.alive ? "#595959" : "#f2f2f2";
+    this.context.fillRect(
+      this.gridX * Cell.width,
+      this.gridY * Cell.height,
+      Cell.width,
+      Cell.height
+    );
+  }
+}
+
+class Player {
+  static width = 10;
+  static height = 10;
+  constructor(context, gridX, gridY) {
+    this.context = context;
+    this.gridX = gridX;
+    this.gridY = gridY;
+    this.alive = true;
+    this.movingUp = false;
+    this.movingDown = false;
+    this.movingRight = false;
+    this.movingLeft = false;
+  }
+
+  draw() {
+    // overwriting
+    this.context.fillStyle = "#33cc33";
+    this.context.fillRect(
+      this.gridX * Player.width,
+      this.gridY * Player.height,
+      Player.width,
+      Player.height
+    );
+  }
+}
+
+class GameWorld {
+  static numColumns = 150;
+  static numRows = 75;
+
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    this.context = this.canvas.getContext("2d");
+    this.gameObjects = []; // array of Cells
+    this.createGrid();
+    this.gamePlayer = new Player(this.context, 75, 37);
+
+    // Request an animation frame for the first time
+    // The gameLoop() function will be called as a callback of this request
+    window.requestAnimationFrame(() => this.gameLoop());
+    window.addEventListener("keydown", (e) => this.keyPressed(e));
+    window.addEventListener("keyup", (e) => this.keyUnpressed(e));
+  }
+
+  createGrid() {
+    for (let y = 0; y < GameWorld.numRows; y++) {
+      for (let x = 0; x < GameWorld.numColumns; x++) {
+        this.gameObjects.push(new Cell(this.context, x, y));
+      }
+    }
+  }
+
+  isAlive(x, y) {
+    // if (x < 0 || x >= GameWorld.numColumns || y < 0 || y >= GameWorld.numRows) {
+    //     return false;
+    // }
+
+    return this.gameObjects[
+      this.gridToIndex(mod(x, GameWorld.numColumns), mod(y, GameWorld.numRows))
+    ].alive
+      ? 1
+      : 0;
+  }
+
+  gridToIndex(x, y) {
+    return x + y * GameWorld.numColumns;
+  }
+
+  checkSurrounding() {
+    // Loop over all cells
+    for (let x = 0; x < GameWorld.numColumns; x++) {
+      for (let y = 0; y < GameWorld.numRows; y++) {
+        // Count the nearby population
+        let numAlive =
+          this.isAlive(x - 1, y - 1) +
+          this.isAlive(x, y - 1) +
+          this.isAlive(x + 1, y - 1) +
+          this.isAlive(x - 1, y) +
+          this.isAlive(x + 1, y) +
+          this.isAlive(x - 1, y + 1) +
+          this.isAlive(x, y + 1) +
+          this.isAlive(x + 1, y + 1);
+        let centerIndex = this.gridToIndex(x, y);
+
+        if (numAlive == 2) {
+          // Do nothing
+          this.gameObjects[centerIndex].nextAlive =
+            this.gameObjects[centerIndex].alive;
+        } else if (numAlive == 3) {
+          // Make alive
+          this.gameObjects[centerIndex].nextAlive = true;
+        } else {
+          // Make dead
+          this.gameObjects[centerIndex].nextAlive = false;
+        }
+      }
+    }
+
+    // Apply the new state to the cells
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
+    }
+  }
+
+  checkPlayerIsAlive() {
+    if (this.gamePlayer.alive && this.isAlive(this.gamePlayer.gridX, this.gamePlayer.gridY) === 1) {
+      this.gamePlayer.alive = false;
+      console.log(`You're dead!`);
+    }
+  }
+
+  keyPressed(event) {
+    if (event.defaultPrevented) {
+      return; // Do nothing if event already handled
+    }
+    switch (event.code) {
+      case "KeyS":
+      case "ArrowDown":
+        this.gamePlayer.movingDown = true;
+        break;
+      case "KeyW":
+      case "ArrowUp":
+        this.gamePlayer.movingUp = true;
+        break;
+      case "KeyA":
+      case "ArrowLeft":
+        this.gamePlayer.movingLeft = true;
+        break;
+      case "KeyD":
+      case "ArrowRight":
+        this.gamePlayer.movingRight = true;
+        break;
+    }
+    // Consume the event so it doesn't get handled twice
+    event.preventDefault();
+  }
+  keyUnpressed(event) {
+    if (event.defaultPrevented) {
+      return; // Do nothing if event already handled
+    }
+    switch (event.code) {
+      case "KeyS":
+      case "ArrowDown":
+        this.gamePlayer.movingDown = false;
+        break;
+      case "KeyW":
+      case "ArrowUp":
+        this.gamePlayer.movingUp = false;
+        break;
+      case "KeyA":
+      case "ArrowLeft":
+        this.gamePlayer.movingLeft = false;
+        break;
+      case "KeyD":
+      case "ArrowRight":
+        this.gamePlayer.movingRight = false;
+        break;
+    }
+    // Consume the event so it doesn't get handled twice
+    event.preventDefault();
+  }
+
+  playerMovement() {
+    if (this.gamePlayer.movingDown) {
+      this.gamePlayer.gridY = mod(this.gamePlayer.gridY + 1, GameWorld.numRows);
+    }
+    if (this.gamePlayer.movingUp) {
+      this.gamePlayer.gridY = mod(this.gamePlayer.gridY - 1, GameWorld.numRows);
+    }
+    if (this.gamePlayer.movingLeft) {
+      this.gamePlayer.gridX = mod(
+        this.gamePlayer.gridX - 1,
+        GameWorld.numColumns
+      );
+    }
+    if (this.gamePlayer.movingRight) {
+      this.gamePlayer.gridX = mod(
+        this.gamePlayer.gridX + 1,
+        GameWorld.numColumns
+      );
+    }
+  }
+
+  gameLoop() {
+    // Check the surrounding of each cell
+    this.checkSurrounding();
+
+    this.playerMovement();
+
+    this.checkPlayerIsAlive();
+
+    // Clear the screen
+    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+
+    // Draw all the gameobjects
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      this.gameObjects[i].draw();
+    }
+    if (this.gamePlayer.alive) {
+      this.gamePlayer.draw();
+    }
+
+    // The loop function has reached its end, keep requesting new frames
+    setTimeout(() => {
+      window.requestAnimationFrame(() => this.gameLoop());
+    }, 50); // wait this number of milliseconds
+  }
+}
+
+window.onload = () => {
+  // The page has loaded, start the game
+  let gameWorld = new GameWorld("myCanvas");
+};
