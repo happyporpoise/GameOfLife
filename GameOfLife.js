@@ -95,7 +95,7 @@ class GameWorld {
     this.context = this.canvas.getContext("2d");
     this.gameObjects = []; // array of Cells
     this.createGrid();
-    this.gamePlayer = new Player(this.context, 75, 37);
+    this.gamePlayer = new Player(this.context, Math.floor(GameWorld.numColumns / 2), Math.floor(GameWorld.numRows / 2));
 
     // Request an animation frame for the first time
     // The gameLoop() function will be called as a callback of this request
@@ -170,8 +170,33 @@ class GameWorld {
       this.isAlive(this.gamePlayer.gridX, this.gamePlayer.gridY) === 1
     ) {
       this.gamePlayer.alive = false;
-      console.log(`You're dead!`);
+      if (confirm(`You're dead! Restart?`)) {
+          this.reset();
+      }
     }
+  }
+
+  reset() {
+    this.gamePlayer.alive = true;
+    this.gamePlayer.gridX = Math.floor(GameWorld.numColumns / 2);
+    this.gamePlayer.gridY = Math.floor(GameWorld.numRows / 2);
+    this.gamePlayer.movingUp = false;
+    this.gamePlayer.movingDown = false;
+    this.gamePlayer.movingRight = false;
+    this.gamePlayer.movingLeft = false;
+    this.gamePlayer.pressedIYHK = false;
+    this.gamePlayer.pressedNE = false;
+    this.gamePlayer.pressedNW = false;
+    this.gamePlayer.pressedSW = false;
+    this.gamePlayer.pressedSE = false;
+    this.gamePlayer.shootNE = false; // keeps track of whether the button for shooting a glider is pressed
+    this.gamePlayer.shootNW = false;
+    this.gamePlayer.shootSW = false;
+    this.gamePlayer.shootSE = false;
+    this.gamePlayer.gliderCoolTimeLeft = 0;
+    for (let i = 0; i < this.gameObjects.length; i++) {
+        this.gameObjects[i].alive = false;
+      }
   }
 
   keyPressed(event) {
@@ -498,10 +523,10 @@ class GameWorld {
 
     this.playerMovement();
 
-    this.checkPlayerIsAlive();
-
     this.gliderUpdate();
     this.updateCoolTime();
+
+    this.checkPlayerIsAlive();
 
     // Clear the screen
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
