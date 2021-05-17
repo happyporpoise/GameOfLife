@@ -15,9 +15,11 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
+    this.alive = false;
     // Make random cells alive
-    this.alive = Math.random() > 0.9;
+    // this.alive = Math.random() > 0.9;
 
+    // // Make a glider
     // const initialCells = [
     //   [74, 33],
     //   [75, 31],
@@ -51,6 +53,7 @@ class Cell {
 class Player {
   static width = 10;
   static height = 10;
+  static gliderCoolTime = 16; // number of generations
   constructor(context, gridX, gridY) {
     this.context = context;
     this.gridX = gridX;
@@ -60,10 +63,19 @@ class Player {
     this.movingDown = false;
     this.movingRight = false;
     this.movingLeft = false;
+    this.pressedIYHK = false;
+    this.pressedNE = false;
+    this.pressedNW = false;
+    this.pressedSW = false;
+    this.pressedSE = false;
+    this.shootNE = false; // keeps track of whether the button for shooting a glider is pressed
+    this.shootNW = false;
+    this.shootSW = false;
+    this.shootSE = false;
+    this.gliderCoolTimeLeft = 0;
   }
 
   draw() {
-    // overwriting
     this.context.fillStyle = "#33cc33";
     this.context.fillRect(
       this.gridX * Player.width,
@@ -153,7 +165,10 @@ class GameWorld {
   }
 
   checkPlayerIsAlive() {
-    if (this.gamePlayer.alive && this.isAlive(this.gamePlayer.gridX, this.gamePlayer.gridY) === 1) {
+    if (
+      this.gamePlayer.alive &&
+      this.isAlive(this.gamePlayer.gridX, this.gamePlayer.gridY) === 1
+    ) {
       this.gamePlayer.alive = false;
       console.log(`You're dead!`);
     }
@@ -180,6 +195,30 @@ class GameWorld {
       case "ArrowRight":
         this.gamePlayer.movingRight = true;
         break;
+      case "KeyI":
+        if (!this.gamePlayer.pressedIYHK) {
+          this.gamePlayer.pressedNE = true;
+          this.gamePlayer.pressedIYHK = true;
+        }
+        break;
+      case "KeyY":
+        if (!this.gamePlayer.pressedIYHK) {
+          this.gamePlayer.pressedNW = true;
+          this.gamePlayer.pressedIYHK = true;
+        }
+        break;
+      case "KeyH":
+        if (!this.gamePlayer.pressedIYHK) {
+          this.gamePlayer.pressedSW = true;
+          this.gamePlayer.pressedIYHK = true;
+        }
+        break;
+      case "KeyK":
+        if (!this.gamePlayer.pressedIYHK) {
+          this.gamePlayer.pressedSE = true;
+          this.gamePlayer.pressedIYHK = true;
+        }
+        break;
     }
     // Consume the event so it doesn't get handled twice
     event.preventDefault();
@@ -205,12 +244,39 @@ class GameWorld {
       case "ArrowRight":
         this.gamePlayer.movingRight = false;
         break;
+      case "KeyI":
+        if (this.gamePlayer.pressedNE) {
+          this.gamePlayer.pressedNE = false;
+          this.gamePlayer.pressedIYHK = false;
+        }
+        break;
+      case "KeyY":
+        if (this.gamePlayer.pressedNW) {
+          this.gamePlayer.pressedNW = false;
+          this.gamePlayer.pressedIYHK = false;
+        }
+        break;
+      case "KeyH":
+        if (this.gamePlayer.pressedSW) {
+          this.gamePlayer.pressedSW = false;
+          this.gamePlayer.pressedIYHK = false;
+        }
+        break;
+      case "KeyK":
+        if (this.gamePlayer.pressedSE) {
+          this.gamePlayer.pressedSE = false;
+          this.gamePlayer.pressedIYHK = false;
+        }
+        break;
     }
     // Consume the event so it doesn't get handled twice
     event.preventDefault();
   }
 
   playerMovement() {
+    if (!this.gamePlayer.alive) {
+      return;
+    }
     if (this.gamePlayer.movingDown) {
       this.gamePlayer.gridY = mod(this.gamePlayer.gridY + 1, GameWorld.numRows);
     }
@@ -231,6 +297,201 @@ class GameWorld {
     }
   }
 
+  shootAGlider() {
+    if (this.gamePlayer.gliderCoolTimeLeft === 0) {
+      if (this.gamePlayer.pressedNE) {
+        this.gamePlayer.shootNE = true;
+        this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
+        return;
+      } else if (this.gamePlayer.pressedNW) {
+        this.gamePlayer.shootNW = true;
+        this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
+      } else if (this.gamePlayer.pressedSW) {
+        this.gamePlayer.shootSW = true;
+        this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
+      } else if (this.gamePlayer.pressedSE) {
+        this.gamePlayer.shootSE = true;
+        this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
+      }
+    }
+  }
+
+  gliderUpdate() {
+    if (!this.gamePlayer.alive) {
+      return;
+    }
+    this.shootAGlider();
+    if (this.gamePlayer.shootNE) {
+      this.gamePlayer.shootNE = false;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 1, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 2, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 2, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 3, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 1, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 2, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 3, GameWorld.numRows)
+        )
+      ].alive = true;
+    } else if (this.gamePlayer.shootNW) {
+      this.gamePlayer.shootNW = false;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 1, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 3, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 2, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 1, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 2, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 3, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 2, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY - 3, GameWorld.numRows)
+        )
+      ].alive = true;
+    } else if (this.gamePlayer.shootSW) {
+      this.gamePlayer.shootSW = false;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 1, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 2, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 2, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 3, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 1, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 2, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX - 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 3, GameWorld.numRows)
+        )
+      ].alive = true;
+    } else if (this.gamePlayer.shootSE) {
+      this.gamePlayer.shootSE = false;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 1, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 3, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 2, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 1, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 2, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 3, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 2, GameWorld.numRows)
+        )
+      ].alive = true;
+      this.gameObjects[
+        this.gridToIndex(
+          mod(this.gamePlayer.gridX + 3, GameWorld.numColumns),
+          mod(this.gamePlayer.gridY + 3, GameWorld.numRows)
+        )
+      ].alive = true;
+    }
+  }
+
+  updateCoolTime() {
+    this.gamePlayer.gliderCoolTimeLeft = Math.max(
+      0,
+      this.gamePlayer.gliderCoolTimeLeft - 1
+    );
+  }
+
+  drawPlayerPointOfView() {
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      this.context.fillStyle = this.gameObjects[i].alive
+        ? "#595959"
+        : "#f2f2f2";
+      this.context.fillRect(
+        mod(
+          this.gameObjects[i].gridX -
+            this.gamePlayer.gridX +
+            Math.floor(GameWorld.numColumns / 2),
+          GameWorld.numColumns
+        ) * Cell.width,
+        mod(
+          this.gameObjects[i].gridY -
+            this.gamePlayer.gridY +
+            Math.floor(GameWorld.numRows / 2),
+          GameWorld.numRows
+        ) * Cell.height,
+        Cell.width,
+        Cell.height
+      );
+    }
+    if (this.gamePlayer.alive) {
+      this.context.fillStyle = "#33cc33";
+      this.context.fillRect(
+        Math.floor(GameWorld.numColumns / 2) * Player.width,
+        Math.floor(GameWorld.numRows / 2) * Player.height,
+        Player.width,
+        Player.height
+      );
+    }
+  }
+
   gameLoop() {
     // Check the surrounding of each cell
     this.checkSurrounding();
@@ -239,16 +500,20 @@ class GameWorld {
 
     this.checkPlayerIsAlive();
 
+    this.gliderUpdate();
+    this.updateCoolTime();
+
     // Clear the screen
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
 
     // Draw all the gameobjects
-    for (let i = 0; i < this.gameObjects.length; i++) {
-      this.gameObjects[i].draw();
-    }
-    if (this.gamePlayer.alive) {
-      this.gamePlayer.draw();
-    }
+    // for (let i = 0; i < this.gameObjects.length; i++) {
+    //   this.gameObjects[i].draw();
+    // }
+    // if (this.gamePlayer.alive) {
+    //   this.gamePlayer.draw();
+    // }
+    this.drawPlayerPointOfView();
 
     // The loop function has reached its end, keep requesting new frames
     setTimeout(() => {
