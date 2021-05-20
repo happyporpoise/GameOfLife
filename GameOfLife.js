@@ -15,27 +15,22 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = false;
+    // Empty canvas
+    // this.alive = false;
+
     // Make random cells alive
     // this.alive = Math.random() > 0.9;
 
-    // // Make a glider
-    // const initialCells = [
-    //   [74, 33],
-    //   [75, 31],
-    //   [75, 33],
-    //   [76, 32],
-    //   [76, 33],
-    // ]; // a glider
+    // // Make a vertical line
     // function isAnInitialCell(x, y) {
-    //   for (let i = 0; i < initialCells.length; i++) {
-    //     if (initialCells[i][0] === x && initialCells[i][1] === y) {
-    //       return true;
-    //     }
+    //   if (x === 0) {
+    //     return true;
     //   }
     //   return false;
     // }
-    // this.alive = isAnInitialCell(gridX, gridY);
+
+    this.initiallyAlive = false;
+    this.alive = false;
   }
 
   draw() {
@@ -94,8 +89,20 @@ class GameWorld {
     this.canvas = document.getElementById(canvasId);
     this.context = this.canvas.getContext("2d");
     this.gameObjects = []; // array of Cells
+    this.initialShape = listOfShapes[Math.floor(Math.random() * listOfShapes.length)];
+    console.log(this.initialShape);
+    this.initialCells = cellsAtPosition(
+      10,
+      10,
+      shapeToCells(this.initialShape)
+    ); // initialize the pattern; use data from the library
+
     this.createGrid();
-    this.gamePlayer = new Player(this.context, Math.floor(GameWorld.numColumns / 2), Math.floor(GameWorld.numRows / 2));
+    this.gamePlayer = new Player(
+      this.context,
+      Math.floor(GameWorld.numColumns / 2),
+      Math.floor(GameWorld.numRows / 2)
+    );
 
     // Request an animation frame for the first time
     // The gameLoop() function will be called as a callback of this request
@@ -105,9 +112,24 @@ class GameWorld {
   }
 
   createGrid() {
+    function isAnInitialCell(x, y, initialCells) {
+      for (let i = 0; i < initialCells.length; i++) {
+        if (
+          mod(initialCells[i][0], GameWorld.numColumns) === x &&
+          mod(initialCells[i][1], GameWorld.numRows) === y
+        ) {
+          return true;
+        }
+      }
+      return false;
+    }
     for (let y = 0; y < GameWorld.numRows; y++) {
       for (let x = 0; x < GameWorld.numColumns; x++) {
         this.gameObjects.push(new Cell(this.context, x, y));
+        this.gameObjects[this.gridToIndex(x, y)].initiallyAlive =
+          isAnInitialCell(x, y, this.initialCells);
+        this.gameObjects[this.gridToIndex(x, y)].alive =
+          this.gameObjects[this.gridToIndex(x, y)].initiallyAlive;
       }
     }
   }
@@ -171,7 +193,7 @@ class GameWorld {
     ) {
       this.gamePlayer.alive = false;
       if (confirm(`You're dead! Restart?`)) {
-          this.reset();
+        this.reset();
       }
     }
   }
@@ -195,8 +217,8 @@ class GameWorld {
     this.gamePlayer.shootSE = false;
     this.gamePlayer.gliderCoolTimeLeft = 0;
     for (let i = 0; i < this.gameObjects.length; i++) {
-        this.gameObjects[i].alive = false;
-      }
+      this.gameObjects[i].alive = this.gameObjects[i].initiallyAlive;
+    }
   }
 
   keyPressed(event) {
@@ -543,7 +565,7 @@ class GameWorld {
     // The loop function has reached its end, keep requesting new frames
     setTimeout(() => {
       window.requestAnimationFrame(() => this.gameLoop());
-    }, 50); // wait this number of milliseconds
+    }, 40); // wait this number of milliseconds
   }
 }
 
