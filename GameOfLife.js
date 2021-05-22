@@ -1,5 +1,12 @@
 "use strict";
 
+const base_image1 = new Image();
+base_image1.src = 'picture1.png';
+const base_image2 = new Image();
+base_image2.src = 'picture2.png';
+const base_image3 = new Image();
+base_image3.src = 'picture3.png';
+
 function mod(n, m) {
   return ((n % m) + m) % m;
 }
@@ -43,6 +50,21 @@ class Cell {
       Cell.height
     );
   }
+
+  draw2(img1,img2) {
+    // Draw a simple square
+
+    if(this.alive){
+    this.context.drawImage(
+      img1,
+      this.gridX * Cell.width -1,
+      this.gridY * Cell.height -1);//,
+      //0,
+      //0,
+      //Cell.width,
+      //Cell.height);
+    }
+  }
 }
 
 class Player {
@@ -78,6 +100,13 @@ class Player {
       Player.width,
       Player.height
     );
+  }
+
+  draw2(img) {
+    this.context.drawImage(
+      img,
+      this.gridX * Player.width-(14-Player.width)/2,
+      this.gridY * Player.height-(14-Player.height)/2);
   }
 }
 
@@ -551,16 +580,19 @@ class GameWorld {
     this.checkPlayerIsAlive();
 
     // Clear the screen
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
-    // Draw all the gameobjects
-    // for (let i = 0; i < this.gameObjects.length; i++) {
-    //   this.gameObjects[i].draw();
-    // }
-    // if (this.gamePlayer.alive) {
-    //   this.gamePlayer.draw();
-    // }
-    this.drawPlayerPointOfView();
+    //this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    this.context.fillStyle = "#595959";
+    this.context.fillRect(
+      0, 0, this.canvas.width, this.canvas.height
+    );
+     //Draw all the gameobjects
+     for (let i = 0; i < this.gameObjects.length; i++) {
+       this.gameObjects[i].draw2(base_image1,base_image2);
+     }
+     if (this.gamePlayer.alive) {
+       this.gamePlayer.draw2(base_image3);
+     }
+    //this.drawPlayerPointOfView();
 
     // The loop function has reached its end, keep requesting new frames
     setTimeout(() => {
