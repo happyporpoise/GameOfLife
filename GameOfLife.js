@@ -8,41 +8,14 @@ class Cell {
   static width = 10;
   static height = 10;
 
-  constructor(context, gridX, gridY) {
-    this.context = context;
-
+  constructor(gridX, gridY) {
     // Store the position of this cell in the grid
     this.gridX = gridX;
     this.gridY = gridY;
 
-    // Empty canvas
-    // this.alive = false;
-
-    // Make random cells alive
-    // this.alive = Math.random() > 0.9;
-
-    // // Make a vertical line
-    // function isAnInitialCell(x, y) {
-    //   if (x === 0) {
-    //     return true;
-    //   }
-    //   return false;
-    // }
-
-    this.initiallyAlive = false;
     this.alive = false;
-  }
-
-  draw() {
-    // Draw a simple square
-    this.context.fillStyle = this.alive ? "#595959" : "#f2f2f2";
-    this.context.fillRect(
-      this.gridX * Cell.width,
-      this.gridY * Cell.height,
-      Cell.width,
-      Cell.height
-    );
-  }
+    this.initiallyAlive=false;
+   }
 }
 
 class Player {
@@ -70,15 +43,6 @@ class Player {
     this.gliderCoolTimeLeft = 0;
   }
 
-  draw() {
-    this.context.fillStyle = "#33cc33";
-    this.context.fillRect(
-      this.gridX * Player.width,
-      this.gridY * Player.height,
-      Player.width,
-      Player.height
-    );
-  }
 }
 
 class GameWorld {
@@ -125,7 +89,7 @@ class GameWorld {
     }
     for (let y = 0; y < GameWorld.numRows; y++) {
       for (let x = 0; x < GameWorld.numColumns; x++) {
-        this.gameObjects.push(new Cell(this.context, x, y));
+        this.gameObjects.push(new Cell(x, y));
         this.gameObjects[this.gridToIndex(x, y)].initiallyAlive =
           isAnInitialCell(x, y, this.initialCells);
         this.gameObjects[this.gridToIndex(x, y)].alive =
@@ -506,7 +470,7 @@ class GameWorld {
     );
   }
 
-  drawPlayerPointOfView() {
+  draw() {
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.context.fillStyle = this.gameObjects[i].alive
         ? "#595959"
@@ -560,7 +524,7 @@ class GameWorld {
     // if (this.gamePlayer.alive) {
     //   this.gamePlayer.draw();
     // }
-    this.drawPlayerPointOfView();
+    this.draw();
 
     // The loop function has reached its end, keep requesting new frames
     setTimeout(() => {
