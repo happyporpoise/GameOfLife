@@ -10,8 +10,8 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/index2.html');
 });
 
-app.get('/index2.js', (req, res) => {
-  res.sendFile(__dirname + '/src/client/html/index2.js');
+app.get('/src/client/:fileName', function (req, res) {
+  res.sendFile(__dirname + '/src/client/'+req.params.fileName);
 });
 
 io.on('connection', (socket) => {
