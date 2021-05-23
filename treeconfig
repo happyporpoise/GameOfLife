@@ -1,0 +1,61 @@
+/static
+    /style
+    /imgs
+/src
+    /server
+        server.js
+            class Server{
+                GameWorld
+                sendGW()
+                receiveKeyboardInputs()
+            }
+    /client
+        client.js
+            class Client{
+                GameWorld
+                sendKeyboardInputs()
+                receiveGW()
+            }
+        render.html
+    /core
+        class Player //remove context
+            cooltime
+        class Cell
+        /*deleted initiallyAlive, context*/
+
+        class GameWorld
+            context
+            Cell[]
+            Player[]
+            worldsize
+
+            draw(style)
+
+            checkSurrounding()//Game of life rule
+
+            gameloop(
+                
+                if isServer:
+                    receiveKeyboardInputs
+
+                    checkSurrounding();//included isalive update 
+                    playerMovement();
+                    gliderUpdate();
+                    updateCoolTime();//move to Player class
+                    checkPlayerIsAlive();
+                    
+                    
+                    sendGW
+                    
+                else:
+
+                    receiveGW
+                    clear();
+                    draw();
+                    sendKeyboardInputs
+            )
+
+        class Life(){
+            readLifeDictionary()
+            putLifeOnArena(gameobjects,position,nameOfLife)
+        }
