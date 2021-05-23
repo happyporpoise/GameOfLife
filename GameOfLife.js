@@ -13,7 +13,7 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = false;
+    this.alive = (Math.random() > 0.5);
     this.initiallyAlive=false;
    }
 }
@@ -22,8 +22,7 @@ class Player {
   static width = 10;
   static height = 10;
   static gliderCoolTime = 16; // number of generations
-  constructor(context, gridX, gridY) {
-    this.context = context;
+  constructor(gridX, gridY) {
     this.gridX = gridX;
     this.gridY = gridY;
     this.alive = true;
@@ -70,9 +69,9 @@ class GameWorld {
 
     // Request an animation frame for the first time
     // The gameLoop() function will be called as a callback of this request
-    window.requestAnimationFrame(() => this.gameLoop());
-    window.addEventListener("keydown", (e) => this.keyPressed(e));
-    window.addEventListener("keyup", (e) => this.keyUnpressed(e));
+    // window.requestAnimationFrame(() => this.gameLoop());
+    // window.addEventListener("keydown", (e) => this.keyPressed(e));
+    // window.addEventListener("keyup", (e) => this.keyUnpressed(e));
   }
 
   createGrid() {
@@ -185,11 +184,8 @@ class GameWorld {
     }
   }
 
-  keyPressed(event) {
-    if (event.defaultPrevented) {
-      return; // Do nothing if event already handled
-    }
-    switch (event.code) {
+  keyPressed(eventcode) {
+    switch (eventcode) {
       case "KeyS":
       case "ArrowDown":
         this.gamePlayer.movingDown = true;
@@ -232,13 +228,10 @@ class GameWorld {
         break;
     }
     // Consume the event so it doesn't get handled twice
-    event.preventDefault();
+    
   }
-  keyUnpressed(event) {
-    if (event.defaultPrevented) {
-      return; // Do nothing if event already handled
-    }
-    switch (event.code) {
+  keyUnpressed(eventcode) {
+    switch (eventcode) {
       case "KeyS":
       case "ArrowDown":
         this.gamePlayer.movingDown = false;
@@ -280,8 +273,6 @@ class GameWorld {
         }
         break;
     }
-    // Consume the event so it doesn't get handled twice
-    event.preventDefault();
   }
 
   playerMovement() {
@@ -503,37 +494,254 @@ class GameWorld {
     }
   }
 
-  gameLoop() {
-    // Check the surrounding of each cell
-    this.checkSurrounding();
+//   gameLoop() {
+//     // Check the surrounding of each cell
+//     this.checkSurrounding();
 
-    this.playerMovement();
+//     this.playerMovement();
 
-    this.gliderUpdate();
-    this.updateCoolTime();
+//     this.gliderUpdate();
+//     this.updateCoolTime();
 
-    this.checkPlayerIsAlive();
+//     this.checkPlayerIsAlive();
 
-    // Clear the screen
-    this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+//     // Clear the screen
+//     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
+//     // Draw all the gameobjects
+//     // for (let i = 0; i < this.gameObjects.length; i++) {
+//     //   this.gameObjects[i].draw();
+//     // }
+//     // if (this.gamePlayer.alive) {
+//     //   this.gamePlayer.draw();
+//     // }
+//     this.draw();
 
-    // Draw all the gameobjects
-    // for (let i = 0; i < this.gameObjects.length; i++) {
-    //   this.gameObjects[i].draw();
-    // }
-    // if (this.gamePlayer.alive) {
-    //   this.gamePlayer.draw();
-    // }
-    this.draw();
-
-    // The loop function has reached its end, keep requesting new frames
-    setTimeout(() => {
-      window.requestAnimationFrame(() => this.gameLoop());
-    }, 40); // wait this number of milliseconds
-  }
+//     // The loop function has reached its end, keep requesting new frames
+//     setTimeout(() => {
+//       window.requestAnimationFrame(() => this.gameLoop());
+//     }, 40); // wait this number of milliseconds
+//   }
 }
 
-window.onload = () => {
-  // The page has loaded, start the game
-  let gameWorld = new GameWorld("myCanvas");
-};
+// window.onload = () => {
+//   // The page has loaded, start the game
+//   let gameWorld = new GameWorld("myCanvas");
+// };
+
+
+
+
+class Game {
+    static numColumns = 150;
+    static numRows = 75;
+    constructor(io) {
+      this._io = io;
+      this.sockets = {};
+      this.players = {};
+      this.lastUpdateTime = Date.now();
+      this.shouldSendUpdate = false;
+  
+      this.gameObjects = []; // array of Cells
+      this.createGrid();
+      this.gamePlayer = new Player(
+        Math.floor(Game.numColumns / 2),
+        Math.floor(Game.numRows / 2)
+      );
+      setInterval(this.update.bind(this), 1000 / 10);
+    }
+  
+    update () {
+      // io.emit('chat message', "This is a useless message :)");
+      this.checkSurrounding();
+      this.playerMovement();
+      this.checkPlayerIsAlive();
+      this._io.emit('draw', this.gameObjects, this.gamePlayer);
+    }
+  
+    createGrid() {
+      for (let y = 0; y < Game.numRows; y++) {
+        for (let x = 0; x < Game.numColumns; x++) {
+          this.gameObjects.push(new Cell(x, y));
+        }
+      }
+    }
+  
+    isAlive(x, y) {
+      return this.gameObjects[
+        this.gridToIndex(mod(x, Game.numColumns), mod(y, Game.numRows))
+      ].alive
+        ? 1
+        : 0;
+    }
+  
+    gridToIndex(x, y) {
+      return x + y * Game.numColumns;
+    }
+  
+    checkSurrounding() {
+      // Loop over all cells
+      for (let x = 0; x < Game.numColumns; x++) {
+        for (let y = 0; y < Game.numRows; y++) {
+          // Count the nearby population
+          let numAlive =
+            this.isAlive(x - 1, y - 1) +
+            this.isAlive(x, y - 1) +
+            this.isAlive(x + 1, y - 1) +
+            this.isAlive(x - 1, y) +
+            this.isAlive(x + 1, y) +
+            this.isAlive(x - 1, y + 1) +
+            this.isAlive(x, y + 1) +
+            this.isAlive(x + 1, y + 1);
+          let centerIndex = this.gridToIndex(x, y);
+  
+          if (numAlive == 2) {
+            // Do nothing
+            this.gameObjects[centerIndex].nextAlive =
+              this.gameObjects[centerIndex].alive;
+          } else if (numAlive == 3) {
+            // Make alive
+            this.gameObjects[centerIndex].nextAlive = true;
+          } else {
+            // Make dead
+            this.gameObjects[centerIndex].nextAlive = false;
+          }
+        }
+      }
+  
+      // Apply the new state to the cells
+      for (let i = 0; i < this.gameObjects.length; i++) {
+        this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
+      }
+    }
+
+    keyPressed(eventcode) {
+        console.log(`(x,y) = (${this.gamePlayer.gridX},${this.gamePlayer.gridY})`);
+ 
+        switch (eventcode) {
+          case "KeyS":
+          case "ArrowDown":
+            this.gamePlayer.movingDown = true;
+            break;
+          case "KeyW":
+          case "ArrowUp":
+            this.gamePlayer.movingUp = true;
+            break;
+          case "KeyA":
+          case "ArrowLeft":
+            this.gamePlayer.movingLeft = true;
+            break;
+          case "KeyD":
+          case "ArrowRight":
+            this.gamePlayer.movingRight = true;
+            break;
+          case "KeyI":
+            if (!this.gamePlayer.pressedIYHK) {
+              this.gamePlayer.pressedNE = true;
+              this.gamePlayer.pressedIYHK = true;
+            }
+            break;
+          case "KeyY":
+            if (!this.gamePlayer.pressedIYHK) {
+              this.gamePlayer.pressedNW = true;
+              this.gamePlayer.pressedIYHK = true;
+            }
+            break;
+          case "KeyH":
+            if (!this.gamePlayer.pressedIYHK) {
+              this.gamePlayer.pressedSW = true;
+              this.gamePlayer.pressedIYHK = true;
+            }
+            break;
+          case "KeyK":
+            if (!this.gamePlayer.pressedIYHK) {
+              this.gamePlayer.pressedSE = true;
+              this.gamePlayer.pressedIYHK = true;
+            }
+            break;
+        }
+        // Consume the event so it doesn't get handled twice
+        
+      }
+      keyUnpressed(eventcode) {
+        switch (eventcode) {
+          case "KeyS":
+          case "ArrowDown":
+            this.gamePlayer.movingDown = false;
+            break;
+          case "KeyW":
+          case "ArrowUp":
+            this.gamePlayer.movingUp = false;
+            break;
+          case "KeyA":
+          case "ArrowLeft":
+            this.gamePlayer.movingLeft = false;
+            break;
+          case "KeyD":
+          case "ArrowRight":
+            this.gamePlayer.movingRight = false;
+            break;
+          case "KeyI":
+            if (this.gamePlayer.pressedNE) {
+              this.gamePlayer.pressedNE = false;
+              this.gamePlayer.pressedIYHK = false;
+            }
+            break;
+          case "KeyY":
+            if (this.gamePlayer.pressedNW) {
+              this.gamePlayer.pressedNW = false;
+              this.gamePlayer.pressedIYHK = false;
+            }
+            break;
+          case "KeyH":
+            if (this.gamePlayer.pressedSW) {
+              this.gamePlayer.pressedSW = false;
+              this.gamePlayer.pressedIYHK = false;
+            }
+            break;
+          case "KeyK":
+            if (this.gamePlayer.pressedSE) {
+              this.gamePlayer.pressedSE = false;
+              this.gamePlayer.pressedIYHK = false;
+            }
+            break;
+        }
+      }
+    
+      playerMovement() {
+        if (!this.gamePlayer.alive) {
+          return;
+        }
+        if (this.gamePlayer.movingDown) {
+          this.gamePlayer.gridY = mod(this.gamePlayer.gridY + 1, Game.numRows);
+        }
+        if (this.gamePlayer.movingUp) {
+          this.gamePlayer.gridY = mod(this.gamePlayer.gridY - 1, Game.numRows);
+        }
+        if (this.gamePlayer.movingLeft) {
+          this.gamePlayer.gridX = mod(
+            this.gamePlayer.gridX - 1,
+            Game.numColumns
+          );
+        }
+        if (this.gamePlayer.movingRight) {
+          this.gamePlayer.gridX = mod(
+            this.gamePlayer.gridX + 1,
+            Game.numColumns
+          );
+        }
+      }
+
+      checkPlayerIsAlive() {
+        // if (
+        //   this.gamePlayer.alive &&
+        //   this.isAlive(this.gamePlayer.gridX, this.gamePlayer.gridY) === 1
+        // ) {
+        //   this.gamePlayer.alive = false;
+        //   if (confirm(`You're dead! Restart?`)) {
+        //     this.reset();
+        //   }
+        // }
+      }
+  }
+
+module.exports = Game;
