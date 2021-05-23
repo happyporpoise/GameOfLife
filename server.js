@@ -9,9 +9,24 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/index2.html');
 });
 
+app.get('/index2.js', (req, res) => {
+  res.sendFile(__dirname + '/src/client/html/index2.js');
+});
+
 io.on('connection', (socket) => {
+  
   socket.on('chat message', msg => {
     io.emit('chat message', msg);
+  });
+
+  socket.on('keydown', msg => {
+    io.emit('chat message','(DOWN)\t'+ msg);
+    //gameWorld.keyPressed(msg);
+  });
+
+  socket.on('keyup', msg => {
+    io.emit('chat message','(UP)\t'+msg);
+    //gameWorld.keyUnpressed(msg);
   });
 });
 

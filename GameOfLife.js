@@ -185,11 +185,9 @@ class GameWorld {
     }
   }
 
-  keyPressed(event) {
-    if (event.defaultPrevented) {
-      return; // Do nothing if event already handled
-    }
-    switch (event.code) {
+  keyPressed(eventcode) {
+ 
+    switch (eventcode) {
       case "KeyS":
       case "ArrowDown":
         this.gamePlayer.movingDown = true;
@@ -232,13 +230,10 @@ class GameWorld {
         break;
     }
     // Consume the event so it doesn't get handled twice
-    event.preventDefault();
+    
   }
-  keyUnpressed(event) {
-    if (event.defaultPrevented) {
-      return; // Do nothing if event already handled
-    }
-    switch (event.code) {
+  keyUnpressed(eventcode) {
+    switch (eventcode) {
       case "KeyS":
       case "ArrowDown":
         this.gamePlayer.movingDown = false;
@@ -280,8 +275,6 @@ class GameWorld {
         }
         break;
     }
-    // Consume the event so it doesn't get handled twice
-    event.preventDefault();
   }
 
   playerMovement() {
@@ -516,7 +509,6 @@ class GameWorld {
 
     // Clear the screen
     this.context.clearRect(0, 0, this.canvas.width, this.canvas.height);
-
     // Draw all the gameobjects
     // for (let i = 0; i < this.gameObjects.length; i++) {
     //   this.gameObjects[i].draw();
