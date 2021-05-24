@@ -1,9 +1,14 @@
 let myCanvas = document.getElementById('myCanvas');
 let myContext = myCanvas.getContext("2d");
 
-const GUI_MODE="PLAIN";
-//const GUI_MODE="PLAIN-NUT";
+//const GUI_MODE="PLAIN";
+let GUI_MODE="PLAIN-NUT";
 //const GUI_MODE="NONE";
+
+const guiModeCode={1:"PLAIN",2:"PLAIN-NUT",3:"NONE"};
+function changeMode(code){
+  GUI_MODE=guiModeCode[code];
+}
 
 const Cellwidth = 10;
 const Cellheight = 10;
