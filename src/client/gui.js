@@ -14,8 +14,8 @@ const Cellwidth = 10;
 const Cellheight = 10;
 const Playerwidth = 10;
 const Playerheight = 10;
-const numColumns = 150;
-const numRows = 75;
+const numColumns = 200;
+const numRows = 100;
 
 
 class colorBoard{
@@ -62,10 +62,10 @@ class colorBoard{
       '#091833',
       '#000103'
     ];
-    let color_decay_times = [2 ,16, 16*8, 16*8*8, 16*8*8*8];
-    //let color_decay_times = [2 ,8, 16*4, 16*8*8, 16*8*8*8];
+    //let color_decay_times = [2 ,16, 16*8, 16*8*8, 16*8*8*8];
+    let color_decay_times = [2 ,10, 16*3, 16*4*4, 16*4*4*4];
     //let color_decay_times = [2 ,10, 50, 550];
-    this.color_list.push('#ffffff');
+    this.color_list.push('#000000');
     
     for (let i = 0; i < color_decay_times.length-1; i++) {
       for (let j = 0; j < color_decay_times[i]; j++) {

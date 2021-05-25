@@ -581,8 +581,8 @@ class GameWorld {
 
 
 class Game {
-    static numColumns = 150;
-    static numRows = 75;
+    static numColumns = 200;
+    static numRows = 100;
     constructor(io) {
       this._io = io;
       this.sockets = {};
