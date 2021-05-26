@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>GameoftheGameofLife</title>
+  <link rel="stylesheet" href="./src/client/index2.css">
+</head>
+
+<body>
+  <ul id="messages"></ul>
+
+  <div class="btn-group">
+    <button id="button1" onclick="changeMode(1)">PLAIN</button>
+    <button id="button2" onclick="changeMode(2)">PLAIN-NUT</button>
+    <button id="button3" onclick="changeMode(3)">SPACEDECAY:TACHYON</button>
+    <button id="button3" onclick="changeMode(4)">SPACEDECAY:TERRAIN</button>
+    <button id="button3" onclick="changeMode(5)">NONE</button>
+  </div>
+
+  <div class="button">
+  </div>
+  
+  <canvas id="myCanvas" style="border:1px solid lightgrey;">
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+ 
+  <script src="./src/client/gui.js"></script>
+  
+  <script src="GameOfLife.js"></script>
+
+  <script>
+    const imgs = {};
+
+    ['cellon.png','player.png'].forEach(file_name =>{
+      const img = new Image();
+      img.src = `./static/${file_name}`;
+      imgs[file_name] = img;
+    });
+  
+
+    const game = new Game(undefined);
+
+    window.addEventListener("keydown", e => {game.keyPressed(e.code);});
+    window.addEventListener("keyup", e => {game.keyUnpressed(e.code);});
+
+  </script>
+</body>
+
+</html>

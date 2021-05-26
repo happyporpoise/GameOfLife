@@ -71,7 +71,12 @@ class Game {
       this.gliderUpdate();
       this.updateCoolTime();
       this.checkPlayerIsAlive();
-      this._io.emit('draw', this.gameObjects, this.gamePlayer);
+      if(this._io!=undefined){
+        this._io.emit('draw', this.gameObjects, this.gamePlayer);
+      }
+      else{
+        draw(this.gameObjects, this.gamePlayer);
+      }
     }
 
     createGrid() {

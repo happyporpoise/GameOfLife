@@ -5,7 +5,7 @@ myCanvas.height = window.innerHeight;
 
 //let GUI_MODE="PLAIN";
 //let GUI_MODE="PLAIN-NUT";
-let GUI_MODE="SPACEDECAY"; //source from https://github.com/elliotwaite/rule-30-and-game-of-life
+let GUI_MODE="SPACEDECAY";
 //let GUI_MODE="NONE";
 
 //const CanvasColumns = -Math.floor(-myCanvas.width);
@@ -234,7 +234,7 @@ function draw(gameCells, gamePlayer) {
     myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
   }
   else if(GUI_MODE=="SPACEDECAY"){
-    cb.update(gameCells)
+    cb.update(gameCells);
   }
   else{
     myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
