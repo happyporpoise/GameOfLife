@@ -13,7 +13,7 @@ function downloadImage(file_name) {
   return new Promise(resolve => {
     const img = new Image();
     img.onload = () => {
-      console.log(`Downloaded ${file_name}`);
+      //console.log(`Downloaded ${file_name}`);
       imgs[file_name] = img;
       resolve();
     };

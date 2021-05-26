@@ -28,13 +28,13 @@ io.on('connection', (socket) => {
   socket.on('keydown', msg => {
     io.emit('chat message','(DOWN)\t'+ msg);
     game.keyPressed(msg);
-    console.log('(DOWN)\t'+ msg);
+    //console.log('(DOWN)\t'+ msg);
   });
 
   socket.on('keyup', msg => {
     io.emit('chat message','(UP)\t'+msg);
     game.keyUnpressed(msg);
-    console.log('(UP)\t'+msg);
+    //console.log('(UP)\t'+msg);
   });
 });
 

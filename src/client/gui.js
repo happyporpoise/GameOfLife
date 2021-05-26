@@ -14,19 +14,18 @@ const Cellwidth = 10;
 const Cellheight = 10;
 const Playerwidth = 10;
 const Playerheight = 10;
-const numColumns = 200;
-const numRows = 100;
+const numColumns = 150;
+const numRows = 70;
 
 
 class colorBoard{
-  
 
   constructor(){
     this.decay_counts=new Array(numRows*numColumns);
     for (let i = 0; i < this.decay_counts.length; i++){
       this.decay_counts[i]=0;
     }
-    this.maxdecaycounts=0;
+    this.maxDecay=0;
     this.color_list = [];
   }
 
@@ -43,59 +42,102 @@ class colorBoard{
     return "#" + ((1 << 24) + (r << 16) + (g << 8) + b).toString(16).slice(1);
   }
 
-  static colorMix(c1,c2,r){
+  static colorBlend(c1,c2,r){
     let [r1,g1,b1]=colorBoard.hexToRgb(c1);
     let [r2,g2,b2]=colorBoard.hexToRgb(c2);
     return colorBoard.rgbToHex(
       Math.floor(r1*(1-r)+r2*r),
       Math.floor(g1*(1-r)+g2*r),
       Math.floor(b1*(1-r)+b2*r));
-  }  
-  
-  setDecayVars(){
-    this.color_list = [];
-    let decayColors = [
-      '#711c91',
-      '#ea00d9',
-      '#0abdc6',
-      '#133e7c',
-      '#091833',
-      '#000103'
-    ];
-    //let color_decay_times = [2 ,16, 16*8, 16*8*8, 16*8*8*8];
-    let color_decay_times = [2 ,10, 16*3, 16*4*4, 16*4*4*4];
-    //let color_decay_times = [2 ,10, 50, 550];
-    this.color_list.push('#000000');
+  } 
+
+  static colorScheme={
+    'TACHYON':[
+      ['#000000',NaN],
+      ['#baeaf5',3],
+      ['#5fc6ff',5],
+      ['#E76583',20],
+      ['#44008b',40],
+      ['#123067',40], 
+      ['#13076f',50],
+      ['#13174f',100],
+      ['#281232', 190],
+      ['#20080e',90],
+    ],
     
-    for (let i = 0; i < color_decay_times.length-1; i++) {
-      for (let j = 0; j < color_decay_times[i]; j++) {
+    'TERRAIN':[
+      ['#034077',NaN],
+      ['#7e2812',3] ,
+      ['#eeb46f',10],
+      ['#f3dcb5',16*5],
+      ['#2da9cd',16*8],
+      ['#269dc7',16*4*8*2],
+    ],
+  }
+  
+  setDecayVars(themeType="TACHYON"){
+    //Read colorScheme
+    let  decayColors = [];
+    let decayTimes = [];
+    colorBoard.colorScheme[themeType].forEach( el =>{
+      decayColors.push(el[0]);
+      decayTimes.push(el[1]);
+    });
+    let liveColor=decayColors[0];
+    decayColors.push(liveColor);
+
+    //Init canvas background
+    myContext.fillStyle=colorBoard.colorBlend(liveColor,'#ffffff',0.1);
+    myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
+
+    //Generate color_list
+    this.color_list = [liveColor];    
+    for (let i = 1; i < decayTimes.length; i++) {
+      for (let j = 0; j < decayTimes[i]; j++) {
         this.color_list.push(
-          colorBoard.colorMix(
+          colorBoard.colorBlend(
             decayColors[i],
             decayColors[i+1],
-            j/color_decay_times[i]
+            j/decayTimes[i]
         ));
       }
     }
-        
-    this.color_list.push("#00000000");
-    this.color_list.reverse();
-    this.maxdecaycounts=this.color_list.length;
-    
-    console.log(this.color_list);
-    
-    console.log(this.maxdecaycounts);
+    this.color_list.push(liveColor);
+    //Set maxDecay
+    let newmax=this.color_list.length-1;
+    for(let i=0;i<this.decay_counts.length;i++){
+      if (this.decay_counts[i]==this.maxDecay) this.decay_counts[i]=newmax;
+    }
+    this.maxDecay=newmax;
 
+    //Display decayColors and color_list
+    let yoffset=numRows+2;
+    for(let i =0;i<decayColors.length;i++){
+      myContext.fillStyle = decayColors[i];
+      myContext.fillRect(
+        2*i*Cellwidth,yoffset*Cellheight,
+        2*Cellwidth,2*Cellheight
+      );
+    }
+    yoffset+=3;
+    for(let i =0;i<this.color_list.length;i++){
+      myContext.fillStyle = this.color_list[i];
+      let [x,y]=[i%numColumns,Math.floor(i/numColumns)];
+      myContext.fillRect(
+        x*Cellwidth,(yoffset+y)*Cellheight,
+        Cellwidth,Cellheight
+      );
+    }
     console.log(this.decay_counts);
   }
 
   update(gameCells){
     for (let i = 0; i < this.decay_counts.length; i++) {
       if(gameCells[i].alive){
-        this.decay_counts[i]=this.maxdecaycounts-1;
+        this.decay_counts[i]=0;
       } 
       else{
-        this.decay_counts[i]=Math.max(this.decay_counts[i]-1,0);
+        this.decay_counts[i]=Math.min(this.decay_counts[i]+1,this.maxDecay);
       }
     }
   }
@@ -103,18 +145,18 @@ class colorBoard{
 
 const cb=new colorBoard();
 
-function setupVar(GUI_MODE){
+function setupVar(GUI_MODE,tags=[]){
   if(GUI_MODE=="SPACEDECAY"){
-    console.log("DECAY");
-    cb.setDecayVars();
+    tags.length>0 ? cb.setDecayVars(tags[0])  : cb.setDecayVars();
   }
 }
 setupVar(GUI_MODE);
 
-const guiModeCode={1:"PLAIN",2:"PLAIN-NUT",3:"SPACEDECAY",4:"NONE"};
+const guiModeCode={1:"PLAIN",2:"PLAIN-NUT",3:"SPACEDECAY:TACHYON",4:"SPACEDECAY:TERRAIN",5:"NONE"};
 function changeMode(code){
-  GUI_MODE=guiModeCode[code];
-  setupVar(GUI_MODE);
+  let codeparse=guiModeCode[code].split(":");
+  GUI_MODE=codeparse.shift();
+  setupVar(GUI_MODE,codeparse);
 }
 
 
@@ -185,8 +227,6 @@ function drawPixel(tag,x,y){
   }
 }
 
-let cnts=0;
-
 function draw(gameCells, gamePlayer) {
 
   if(GUI_MODE=="PLAIN"){
@@ -194,8 +234,6 @@ function draw(gameCells, gamePlayer) {
     myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
   }
   else if(GUI_MODE=="SPACEDECAY"){
-    myContext.fillStyle="#000000";
-    myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
     cb.update(gameCells)
   }
   else{
@@ -209,12 +247,6 @@ function draw(gameCells, gamePlayer) {
       element.gridY-gamePlayer.gridY
     );
   });
-
+  
   if (gamePlayer.alive) drawPixel("player",0,0) ;
-
-
-  if(cnts==0){
-    console.log(cb.decay_counts);
-    cnts+=1;
-  }
 }
