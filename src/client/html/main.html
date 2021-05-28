@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>GameoftheGameofLife</title>
+  <link rel="stylesheet" href="/src/client/index2.css">
+</head>
+
+<body>
+  <ul id="messages"></ul>
+
+  <div class="btn-group">
+    <button id="ffa" onclick="redirect(this.id)">FFA</button>
+    <button id="single" onclick="redirect(this.id)">SINGLE</button>
+  </div>
+
+  <div class="button">
+  </div>
+  
+ 
+  <canvas id="myCanvas" style="border:1px solid lightgrey;">
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script src="/src/client/download.js"></script>
+  <script src="/src/client/gui.js"></script>
+  <script src="/src/client/socket.js"></script>
+  <script src="/src/client/main.js"></script>
+  
+  
+  <script>
+
+    socket.on('draw', draw);
+
+    window.addEventListener("keydown", sendEvent("keydown"));
+    window.addEventListener("keyup", sendEvent("keyup"));
+
+  </script>
+</body>
+
+</html>

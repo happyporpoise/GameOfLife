@@ -9,3 +9,7 @@ function sendEvent(tag){
     e.preventDefault();
   }
 }
+
+function gameSet(tag){
+  socket.emit(tag, e.code);
+}

@@ -14,8 +14,8 @@ const Cellwidth = 10;
 const Cellheight = 10;
 const Playerwidth = 10;
 const Playerheight = 10;
-const numColumns = 150;
-const numRows = 70;
+numColumns = 150;
+numRows = 70;
 
 
 class colorBoard{
@@ -109,7 +109,9 @@ class colorBoard{
       if (this.decay_counts[i]==this.maxDecay) this.decay_counts[i]=newmax;
     }
     this.maxDecay=newmax;
+  }
 
+  displayColorBar(){
     //Display decayColors and color_list
     let yoffset=numRows+2;
     for(let i =0;i<decayColors.length;i++){
@@ -128,7 +130,6 @@ class colorBoard{
         Cellwidth,Cellheight
       );
     }
-    console.log(this.decay_counts);
   }
 
   update(gameCells){
@@ -145,19 +146,15 @@ class colorBoard{
 
 const cb=new colorBoard();
 
-function setupVar(GUI_MODE,tags=[]){
+function setupVar(_GUI_MODE){
+  let codeparse=_GUI_MODE.split(":");
+  GUI_MODE=codeparse.shift();
   if(GUI_MODE=="SPACEDECAY"){
-    tags.length>0 ? cb.setDecayVars(tags[0])  : cb.setDecayVars();
+    codeparse.length>0 ? cb.setDecayVars(codeparse[0]) : cb.setDecayVars();
   }
 }
-setupVar(GUI_MODE);
 
-const guiModeCode={1:"PLAIN",2:"PLAIN-NUT",3:"SPACEDECAY:TACHYON",4:"SPACEDECAY:TERRAIN",5:"NONE"};
-function changeMode(code){
-  let codeparse=guiModeCode[code].split(":");
-  GUI_MODE=codeparse.shift();
-  setupVar(GUI_MODE,codeparse);
-}
+setupVar(GUI_MODE);
 
 
 function mod(n, m) {

@@ -5,17 +5,12 @@ function mod(n, m) {
 }
 
 class Cell {
-  static width = 10;
-  static height = 10;
-
   constructor(gridX, gridY) {
     // Store the position of this cell in the grid
     this.gridX = gridX;
     this.gridY = gridY;
 
-
     this.alive = (Math.random() > 0.5);
-    this.initiallyAlive=false;
   }
 }
 
@@ -61,7 +56,7 @@ class Game {
         Math.floor(Game.numColumns / 2),
         Math.floor(Game.numRows / 2)
       );
-      setInterval(this.update.bind(this), 1000 / 15);
+      setInterval(this.update.bind(this), 1000 / 10);
     }
   
     update () {
@@ -71,12 +66,7 @@ class Game {
       this.gliderUpdate();
       this.updateCoolTime();
       this.checkPlayerIsAlive();
-      if(this._io!=undefined){
-        this._io.emit('draw', this.gameObjects, this.gamePlayer);
-      }
-      else{
-        draw(this.gameObjects, this.gamePlayer);
-      }
+      this._io.emit('draw', this.gameObjects, this.gamePlayer);
     }
 
     createGrid() {

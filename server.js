@@ -7,7 +7,15 @@ const Game = require('./GameOfLife.js');
 const game = new Game(io);
 
 app.get('/', (req, res) => {
-  res.sendFile(__dirname + '/src/client/html/index2.html');
+  res.sendFile(__dirname + '/src/client/html/main.html');
+});
+
+app.get('/ffa', (req, res) => {
+  res.sendFile(__dirname + '/src/client/html/single.html');
+});
+
+app.get('/single', (req, res) => {
+  res.sendFile(__dirname + '/src/client/html/single.html');
 });
 
 app.get('/src/client/:fileName', function (req, res) {
