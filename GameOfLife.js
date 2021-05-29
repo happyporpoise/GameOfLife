@@ -41,21 +41,21 @@ class Player {
 
 
 class Game {
-    static numColumns = 150;
-    static numRows = 70;
-    constructor(io) {
-      this._io = io;
+    static numColumns = 120;
+    static numRows = 90;
+    constructor(_io) {
+      this.io = _io;
       this.sockets = {};
-      this.players = {};
+      this.players ={};
       this.lastUpdateTime = Date.now();
       this.shouldSendUpdate = false;
   
       this.gameObjects = []; // array of Cells
       this.createGrid();
-      this.gamePlayer = new Player(
-        Math.floor(Game.numColumns / 2),
-        Math.floor(Game.numRows / 2)
-      );
+      //this.gamePlayer = new Player(
+      //  Math.floor(Game.numColumns / 2),
+      //  Math.floor(Game.numRows / 2)
+      //);
       setInterval(this.update.bind(this), 1000 / 10);
     }
   
@@ -66,7 +66,7 @@ class Game {
       this.gliderUpdate();
       this.updateCoolTime();
       this.checkPlayerIsAlive();
-      this._io.emit('draw', this.gameObjects, this.gamePlayer);
+      this.io.emit('draw', this.gameObjects, this.players);
     }
 
     createGrid() {
@@ -125,300 +125,317 @@ class Game {
       }
     }
 
-    keyPressed(eventcode) {
+    keyPressed(id,eventcode) {
         switch (eventcode) {
           case "KeyS":
           case "ArrowDown":
-            this.gamePlayer.movingDown = true;
+            this.players[id].movingDown = true;
             break;
           case "KeyW":
           case "ArrowUp":
-            this.gamePlayer.movingUp = true;
+            this.players[id].movingUp = true;
             break;
           case "KeyA":
           case "ArrowLeft":
-            this.gamePlayer.movingLeft = true;
+            this.players[id].movingLeft = true;
             break;
           case "KeyD":
           case "ArrowRight":
-            this.gamePlayer.movingRight = true;
+            this.players[id].movingRight = true;
             break;
           case "KeyI":
           case "KeyO":
-            if (!this.gamePlayer.pressedIYHK) {
-              this.gamePlayer.pressedNE = true;
-              this.gamePlayer.pressedIYHK = true;
+            if (!this.players[id].pressedIYHK) {
+              this.players[id].pressedNE = true;
+              this.players[id].pressedIYHK = true;
             }
             break;
           case "KeyY":
           case "KeyU":
-            if (!this.gamePlayer.pressedIYHK) {
-              this.gamePlayer.pressedNW = true;
-              this.gamePlayer.pressedIYHK = true;
+            if (!this.players[id].pressedIYHK) {
+              this.players[id].pressedNW = true;
+              this.players[id].pressedIYHK = true;
             }
             break;
           case "KeyH":
           case "KeyJ":
-            if (!this.gamePlayer.pressedIYHK) {
-              this.gamePlayer.pressedSW = true;
-              this.gamePlayer.pressedIYHK = true;
+            if (!this.players[id].pressedIYHK) {
+              this.players[id].pressedSW = true;
+              this.players[id].pressedIYHK = true;
             }
             break;
           case "KeyK":
           case "KeyL":
-            if (!this.gamePlayer.pressedIYHK) {
-              this.gamePlayer.pressedSE = true;
-              this.gamePlayer.pressedIYHK = true;
+            if (!this.players[id].pressedIYHK) {
+              this.players[id].pressedSE = true;
+              this.players[id].pressedIYHK = true;
             }
             break;
         }
         // Consume the event so it doesn't get handled twice
-        
       }
-      keyUnpressed(eventcode) {
+      keyUnpressed(id,eventcode) {
         switch (eventcode) {
           case "KeyS":
           case "ArrowDown":
-            this.gamePlayer.movingDown = false;
+            this.players[id].movingDown = false;
             break;
           case "KeyW":
           case "ArrowUp":
-            this.gamePlayer.movingUp = false;
+            this.players[id].movingUp = false;
             break;
           case "KeyA":
           case "ArrowLeft":
-            this.gamePlayer.movingLeft = false;
+            this.players[id].movingLeft = false;
             break;
           case "KeyD":
           case "ArrowRight":
-            this.gamePlayer.movingRight = false;
+            this.players[id].movingRight = false;
             break;
           case "KeyI":
           case "KeyO":
-              if (this.gamePlayer.pressedNE) {
-              this.gamePlayer.pressedNE = false;
-              this.gamePlayer.pressedIYHK = false;
+              if (this.players[id].pressedNE) {
+              this.players[id].pressedNE = false;
+              this.players[id].pressedIYHK = false;
             }
             break;
           case "KeyY":
           case "KeyU":
-            if (this.gamePlayer.pressedNW) {
-              this.gamePlayer.pressedNW = false;
-              this.gamePlayer.pressedIYHK = false;
+            if (this.players[id].pressedNW) {
+              this.players[id].pressedNW = false;
+              this.players[id].pressedIYHK = false;
             }
             break;
           case "KeyH":
           case "KeyJ":
-            if (this.gamePlayer.pressedSW) {
-              this.gamePlayer.pressedSW = false;
-              this.gamePlayer.pressedIYHK = false;
+            if (this.players[id].pressedSW) {
+              this.players[id].pressedSW = false;
+              this.players[id].pressedIYHK = false;
             }
             break;
           case "KeyK":
           case "KeyL":
-            if (this.gamePlayer.pressedSE) {
-              this.gamePlayer.pressedSE = false;
-              this.gamePlayer.pressedIYHK = false;
+            if (this.players[id].pressedSE) {
+              this.players[id].pressedSE = false;
+              this.players[id].pressedIYHK = false;
             }
             break;
         }
       }
     
       playerMovement() {
-        if (!this.gamePlayer.alive) {
-          return;
-        }
-        if (this.gamePlayer.movingDown) {
-          this.gamePlayer.gridY = mod(this.gamePlayer.gridY + 1, Game.numRows);
-        }
-        if (this.gamePlayer.movingUp) {
-          this.gamePlayer.gridY = mod(this.gamePlayer.gridY - 1, Game.numRows);
-        }
-        if (this.gamePlayer.movingLeft) {
-          this.gamePlayer.gridX = mod(
-            this.gamePlayer.gridX - 1,
-            Game.numColumns
-          );
-        }
-        if (this.gamePlayer.movingRight) {
-          this.gamePlayer.gridX = mod(
-            this.gamePlayer.gridX + 1,
-            Game.numColumns
-          );
-        }
+        Object.keys(this.players).forEach((id)=>{
+          if (!this.players[id].alive) {
+            return;
+          }
+          if (this.players[id].movingDown) {
+            this.players[id].gridY = mod(this.players[id].gridY + 1, Game.numRows);
+          }
+          if (this.players[id].movingUp) {
+            this.players[id].gridY = mod(this.players[id].gridY - 1, Game.numRows);
+          }
+          if (this.players[id].movingLeft) {
+            this.players[id].gridX = mod(
+              this.players[id].gridX - 1,
+              Game.numColumns
+            );
+          }
+          if (this.players[id].movingRight) {
+            this.players[id].gridX = mod(
+              this.players[id].gridX + 1,
+              Game.numColumns
+            );
+          }
+        });
       }
 
       checkPlayerIsAlive() {
-        // if (
-        //   this.gamePlayer.alive &&
-        //   this.isAlive(this.gamePlayer.gridX, this.gamePlayer.gridY) === 1
-        // ) {
-        //   this.gamePlayer.alive = false;
-        //   if (confirm(`You're dead! Restart?`)) {
-        //     this.reset();
-        //   }
-        // }
+        Object.keys(this.players).forEach((id)=>{
+          if (
+            this.players[id].alive &&
+            this.isAlive(this.players[id].gridX, this.players[id].gridY) === 1
+          ) {
+            delete this.players[id];
+            this.io.to(id).emit("dead");
+          }
+        });
       }
       
       shootAGlider() {
-        if (this.gamePlayer.gliderCoolTimeLeft === 0) {
-          if (this.gamePlayer.pressedNE) {
-            this.gamePlayer.shootNE = true;
-            this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
-            return;
-          } else if (this.gamePlayer.pressedNW) {
-            this.gamePlayer.shootNW = true;
-            this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
-          } else if (this.gamePlayer.pressedSW) {
-            this.gamePlayer.shootSW = true;
-            this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
-          } else if (this.gamePlayer.pressedSE) {
-            this.gamePlayer.shootSE = true;
-            this.gamePlayer.gliderCoolTimeLeft = Player.gliderCoolTime;
+        Object.keys(this.players).forEach((id)=>{
+          if (this.players[id].gliderCoolTimeLeft === 0) {
+            if (this.players[id].pressedNE) {
+              this.players[id].shootNE = true;
+              this.players[id].gliderCoolTimeLeft = Player.gliderCoolTime;
+              return;
+            } else if (this.players[id].pressedNW) {
+              this.players[id].shootNW = true;
+              this.players[id].gliderCoolTimeLeft = Player.gliderCoolTime;
+            } else if (this.players[id].pressedSW) {
+              this.players[id].shootSW = true;
+              this.players[id].gliderCoolTimeLeft = Player.gliderCoolTime;
+            } else if (this.players[id].pressedSE) {
+              this.players[id].shootSE = true;
+              this.players[id].gliderCoolTimeLeft = Player.gliderCoolTime;
+            }
           }
-        }
+        });
       }
 
       gliderUpdate() {
-        if (!this.gamePlayer.alive) {
-          return;
-        }
-        this.shootAGlider();
-        if (this.gamePlayer.shootNE) {
-          this.gamePlayer.shootNE = false;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 1, Game.numColumns),
-              mod(this.gamePlayer.gridY - 2, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 2, Game.numColumns),
-              mod(this.gamePlayer.gridY - 3, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 3, Game.numColumns),
-              mod(this.gamePlayer.gridY - 1, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 3, Game.numColumns),
-              mod(this.gamePlayer.gridY - 2, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 3, Game.numColumns),
-              mod(this.gamePlayer.gridY - 3, Game.numRows)
-            )
-          ].alive = true;
-        } else if (this.gamePlayer.shootNW) {
-          this.gamePlayer.shootNW = false;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 1, Game.numColumns),
-              mod(this.gamePlayer.gridY - 3, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 2, Game.numColumns),
-              mod(this.gamePlayer.gridY - 1, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 2, Game.numColumns),
-              mod(this.gamePlayer.gridY - 3, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 3, Game.numColumns),
-              mod(this.gamePlayer.gridY - 2, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 3, Game.numColumns),
-              mod(this.gamePlayer.gridY - 3, Game.numRows)
-            )
-          ].alive = true;
-        } else if (this.gamePlayer.shootSW) {
-          this.gamePlayer.shootSW = false;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 1, Game.numColumns),
-              mod(this.gamePlayer.gridY + 2, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 2, Game.numColumns),
-              mod(this.gamePlayer.gridY + 3, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 3, Game.numColumns),
-              mod(this.gamePlayer.gridY + 1, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 3, Game.numColumns),
-              mod(this.gamePlayer.gridY + 2, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX - 3, Game.numColumns),
-              mod(this.gamePlayer.gridY + 3, Game.numRows)
-            )
-          ].alive = true;
-        } else if (this.gamePlayer.shootSE) {
-          this.gamePlayer.shootSE = false;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 1, Game.numColumns),
-              mod(this.gamePlayer.gridY + 3, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 2, Game.numColumns),
-              mod(this.gamePlayer.gridY + 1, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 2, Game.numColumns),
-              mod(this.gamePlayer.gridY + 3, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 3, Game.numColumns),
-              mod(this.gamePlayer.gridY + 2, Game.numRows)
-            )
-          ].alive = true;
-          this.gameObjects[
-            this.gridToIndex(
-              mod(this.gamePlayer.gridX + 3, Game.numColumns),
-              mod(this.gamePlayer.gridY + 3, Game.numRows)
-            )
-          ].alive = true;
-        }
+        Object.keys(this.players).forEach((id)=>{
+          if (!this.players[id].alive) {
+            return;
+          }
+          this.shootAGlider();
+          if (this.players[id].shootNE) {
+            this.players[id].shootNE = false;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 1, Game.numColumns),
+                mod(this.players[id].gridY - 2, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 2, Game.numColumns),
+                mod(this.players[id].gridY - 3, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 3, Game.numColumns),
+                mod(this.players[id].gridY - 1, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 3, Game.numColumns),
+                mod(this.players[id].gridY - 2, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 3, Game.numColumns),
+                mod(this.players[id].gridY - 3, Game.numRows)
+              )
+            ].alive = true;
+          } else if (this.players[id].shootNW) {
+            this.players[id].shootNW = false;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 1, Game.numColumns),
+                mod(this.players[id].gridY - 3, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 2, Game.numColumns),
+                mod(this.players[id].gridY - 1, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 2, Game.numColumns),
+                mod(this.players[id].gridY - 3, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 3, Game.numColumns),
+                mod(this.players[id].gridY - 2, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 3, Game.numColumns),
+                mod(this.players[id].gridY - 3, Game.numRows)
+              )
+            ].alive = true;
+          } else if (this.players[id].shootSW) {
+            this.players[id].shootSW = false;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 1, Game.numColumns),
+                mod(this.players[id].gridY + 2, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 2, Game.numColumns),
+                mod(this.players[id].gridY + 3, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 3, Game.numColumns),
+                mod(this.players[id].gridY + 1, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 3, Game.numColumns),
+                mod(this.players[id].gridY + 2, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX - 3, Game.numColumns),
+                mod(this.players[id].gridY + 3, Game.numRows)
+              )
+            ].alive = true;
+          } else if (this.players[id].shootSE) {
+            this.players[id].shootSE = false;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 1, Game.numColumns),
+                mod(this.players[id].gridY + 3, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 2, Game.numColumns),
+                mod(this.players[id].gridY + 1, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 2, Game.numColumns),
+                mod(this.players[id].gridY + 3, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 3, Game.numColumns),
+                mod(this.players[id].gridY + 2, Game.numRows)
+              )
+            ].alive = true;
+            this.gameObjects[
+              this.gridToIndex(
+                mod(this.players[id].gridX + 3, Game.numColumns),
+                mod(this.players[id].gridY + 3, Game.numRows)
+              )
+            ].alive = true;
+          }
+        });
       }
       updateCoolTime() {
-        this.gamePlayer.gliderCoolTimeLeft = Math.max(
-          0,
-          this.gamePlayer.gliderCoolTimeLeft - 1
-        );
+        Object.keys(this.players).forEach((id)=>{
+          this.players[id].gliderCoolTimeLeft = Math.max(
+            0,
+            this.players[id].gliderCoolTimeLeft - 1
+          );
+        });
+      }
+
+      addPlayer(id){
+        let randCell=this.gameObjects[Math.floor(this.gameObjects.length*Math.random())];
+        if(!randCell.alive){
+          this.players[id]=new Player(randCell.gridX,randCell.gridY);
+        }
+        else{
+          this.addPlayer(id);
+        }
       }
   }
 

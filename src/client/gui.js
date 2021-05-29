@@ -3,6 +3,7 @@ let myContext = myCanvas.getContext("2d");
 myCanvas.width = window.innerWidth;
 myCanvas.height = window.innerHeight;
 
+console.log("qve4");
 //let GUI_MODE="PLAIN";
 //let GUI_MODE="PLAIN-NUT";
 let GUI_MODE="SPACEDECAY";
@@ -14,13 +15,15 @@ const Cellwidth = 10;
 const Cellheight = 10;
 const Playerwidth = 10;
 const Playerheight = 10;
-numColumns = 150;
-numRows = 70;
 
+function mod(n, m) {
+  return ((n % m) + m) % m;
+}
 
 class colorBoard{
 
   constructor(){
+    console.log(this);
     this.decay_counts=new Array(numRows*numColumns);
     for (let i = 0; i < this.decay_counts.length; i++){
       this.decay_counts[i]=0;
@@ -131,119 +134,126 @@ class colorBoard{
       );
     }
   }
+  
+  drawPixel(tag,x,y){
 
-  update(gameCells){
-    for (let i = 0; i < this.decay_counts.length; i++) {
-      if(gameCells[i].alive){
-        this.decay_counts[i]=0;
-      } 
-      else{
-        this.decay_counts[i]=Math.min(this.decay_counts[i]+1,this.maxDecay);
-      }
+    let newx=mod(x+Math.floor(numColumns / 2),numColumns) * Cellwidth;
+    let newy=mod(y+Math.floor(numRows / 2),numRows) * Cellheight;
+    
+    switch (GUI_MODE){
+  
+      case "PLAIN":
+        switch (tag) {
+        case "cellAlive":
+          myContext.drawImage(imgs["cellon.png"],newx -1,newy -1);
+          break;
+        case "cellDead":
+          break;
+        case "player":
+          myContext.drawImage(imgs["player.png"],newx -1,newy -1);
+          break;
+        }
+        break;
+  
+      case "PLAIN-NUT":
+        switch (tag) {
+        case "cellAlive":
+        case "cellDead":
+          myContext.fillStyle = (tag=="cellAlive")
+           ? "#595959"
+            : "#f2f2f2";
+          myContext.fillRect(
+            newx,newy,
+            Cellwidth,Cellheight
+          );
+          break;
+        case "player":
+          myContext.fillStyle = "#33cc33";
+          myContext.fillRect(
+            newx,newy,
+            Playerwidth,Playerheight
+          );
+        }
+        break;
+  
+        case "SPACEDECAY":
+          switch (tag) {
+            case "player":
+              myContext.fillStyle = "#33cc33";
+              myContext.fillRect(
+                newx,newy,
+                Playerwidth,Playerheight
+              );
+              break;
+            default:
+              myContext.fillStyle = "#"+tag.split('#')[1];
+              myContext.fillRect(
+                newx,newy,
+                Cellwidth,Cellheight
+              );
+              break;
+            
+          }
+          break;
     }
   }
 }
 
-const cb=new colorBoard();
-
-function setupVar(_GUI_MODE){
-  let codeparse=_GUI_MODE.split(":");
-  GUI_MODE=codeparse.shift();
-  if(GUI_MODE=="SPACEDECAY"){
-    codeparse.length>0 ? cb.setDecayVars(codeparse[0]) : cb.setDecayVars();
-  }
+function setupVar(cb){
+  return (_GUI_MODE)=>{
+    let codeparse=_GUI_MODE.split(":");
+    GUI_MODE=codeparse.shift();
+    if(GUI_MODE=="SPACEDECAY"){
+      codeparse.length>0 ? cb.setDecayVars(codeparse[0]) : cb.setDecayVars();
+    }
+  };
 }
 
-setupVar(GUI_MODE);
 
+let gamePlayer={};
+    
+function draw(id,cb){
+  return (gameCells, players) => {
+    if(id in players){
+      gamePlayer=players[id];
+    }
+    if(GUI_MODE=="PLAIN"){
+      myContext.fillStyle="#595959";
+      myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
+    }
+    else if(GUI_MODE=="SPACEDECAY"){
+      update(gameCells,cb);
+    }
+    else{
+      myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
+    }
 
-function mod(n, m) {
-    return ((n % m) + m) % m;
+    gameCells.forEach(element => {
+      cb.drawPixel((element.alive ? "cellAlive" : "cellDead")
+        + ((GUI_MODE=="SPACEDECAY") ? cb.color_list[cb.decay_counts[element.gridX + element.gridY * numColumns]] : ""),
+        element.gridX-gamePlayer.gridX,
+        element.gridY-gamePlayer.gridY
+      );
+    });
+    
+    Object.keys(players).forEach((_id) => {
+      cb.drawPixel("player",
+        players[_id].gridX-gamePlayer.gridX,
+        players[_id].gridY-gamePlayer.gridY
+      );
+    });
+
+    if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
+  };
 }
 
-function drawPixel(tag,x,y){
-
-  newx=mod(x+Math.floor(numColumns / 2),numColumns) * Cellwidth;
-  newy=mod(y+Math.floor(numRows / 2),numRows) * Cellheight;
-  
-  switch (GUI_MODE){
-
-    case "PLAIN":
-      switch (tag) {
-      case "cellAlive":
-        myContext.drawImage(imgs["cellon.png"],newx -1,newy -1);
-        break;
-      case "cellDead":
-        break;
-      case "player":
-        myContext.drawImage(imgs["player.png"],newx -1,newy -1);
-        break;
-      }
-      break;
-
-    case "PLAIN-NUT":
-      switch (tag) {
-      case "cellAlive":
-      case "cellDead":
-        myContext.fillStyle = (tag=="cellAlive")
-         ? "#595959"
-          : "#f2f2f2";
-        myContext.fillRect(
-          newx,newy,
-          Cellwidth,Cellheight
-        );
-        break;
-      case "player":
-        myContext.fillStyle = "#33cc33";
-        myContext.fillRect(
-          newx,newy,
-          Playerwidth,Playerheight
-        );
-      }
-      break;
-
-      case "SPACEDECAY":
-        switch (tag) {
-          case "player":
-            myContext.fillStyle = "#33cc33";
-            myContext.fillRect(
-              newx,newy,
-              Playerwidth,Playerheight
-            );
-            break;
-          default:
-            myContext.fillStyle = "#"+tag.split('#')[1];
-            myContext.fillRect(
-              newx,newy,
-              Cellwidth,Cellheight
-            );
-            break;
-          
-        }
-        break;
+function update(gameCells,cb){
+  for (let i = 0; i < cb.decay_counts.length; i++) {
+    if(gameCells[i].alive){
+      cb.decay_counts[i]=0;
+    } 
+    else{
+      cb.decay_counts[i]=Math.min(cb.decay_counts[i]+1,cb.maxDecay);
+    }
   }
-}
-
-function draw(gameCells, gamePlayer) {
-
-  if(GUI_MODE=="PLAIN"){
-    myContext.fillStyle="#595959";
-    myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
-  }
-  else if(GUI_MODE=="SPACEDECAY"){
-    cb.update(gameCells);
-  }
-  else{
-    myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
-  }
-
-  gameCells.forEach(element => {
-    drawPixel((element.alive ? "cellAlive" : "cellDead")
-      + ((GUI_MODE=="SPACEDECAY") ? cb.color_list[cb.decay_counts[element.gridX + element.gridY * numColumns]] : ""),
-      element.gridX-gamePlayer.gridX,
-      element.gridY-gamePlayer.gridY
-    );
-  });
-  
-  if (gamePlayer.alive) drawPixel("player",0,0) ;
 }

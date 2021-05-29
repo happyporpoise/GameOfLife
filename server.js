@@ -33,16 +33,27 @@ io.on('connection', (socket) => {
     io.emit('chat message', msg);
     console.log(msg);
   });
-  socket.on('keydown', msg => {
-    io.emit('chat message','(DOWN)\t'+ msg);
-    game.keyPressed(msg);
-    //console.log('(DOWN)\t'+ msg);
+
+  socket.on('keydown', (id,msg) => {
+    if(id in game.players){
+      game.keyPressed(id,msg);
+    }
   });
 
-  socket.on('keyup', msg => {
-    io.emit('chat message','(UP)\t'+msg);
-    game.keyUnpressed(msg);
-    //console.log('(UP)\t'+msg);
+  socket.on('keyup', (id,msg) => {
+    if(id in game.players){
+      game.keyUnpressed(id,msg);
+    }
+  });
+
+  socket.on("gameSet", (gametype, userinfo, callback) => {
+    game.addPlayer(socket.id);
+    console.log(Object.keys(game.players));
+    callback({
+      id:socket.id,
+      numColumns: Game.numColumns,
+      numRows: Game.numRows,
+    });
   });
 });
 

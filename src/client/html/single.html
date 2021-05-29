@@ -10,10 +10,10 @@
   <ul id="messages"></ul>
 
   <div class="btn-group">
-    <button id="PLAIN" onclick="setupVar(this.id)">PLAIN</button>
-    <button id="PLAIN-NUT" onclick="setupVar(this.id)">PLAIN-NUT</button>
-    <button id="SPACEDECAY:TACHYON" onclick="setupVar(this.id)">SPACEDECAY:TACHYON</button>
-    <button id="SPACEDECAY:TERRAIN" onclick="setupVar(this.id)">SPACEDECAY:TERRAIN</button>
+    <button id="PLAIN" onclick="setupVar(cb)(this.id)">PLAIN</button>
+    <button id="PLAIN-NUT" onclick="setupVar(cb)(this.id)">PLAIN-NUT</button>
+    <button id="SPACEDECAY:TACHYON" onclick="setupVar(cb)(this.id)">SPACEDECAY:TACHYON</button>
+    <button id="SPACEDECAY:TERRAIN" onclick="setupVar(cb)(this.id)">SPACEDECAY:TERRAIN</button>
     <button id="NONE" onclick="setupVar(this.id)">NONE</button>
   </div>
 
@@ -32,11 +32,7 @@
 
   <script>
 
-    socket.on('draw', draw);
-
-    window.addEventListener("keydown", sendEvent("keydown"));
-    window.addEventListener("keyup", sendEvent("keyup"));
-
+gameSet("FFA");
   </script>
 </body>
 

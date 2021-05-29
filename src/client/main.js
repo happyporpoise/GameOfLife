@@ -8,3 +8,7 @@ function redirect(tag){
         break;
     };
 }
+
+function main(){
+
+}
