@@ -125,104 +125,18 @@ class Game {
       }
     }
 
-    keyPressed(id,eventcode) {
-        switch (eventcode) {
-          case "KeyS":
-          case "ArrowDown":
-            this.players[id].movingDown = true;
-            break;
-          case "KeyW":
-          case "ArrowUp":
-            this.players[id].movingUp = true;
-            break;
-          case "KeyA":
-          case "ArrowLeft":
-            this.players[id].movingLeft = true;
-            break;
-          case "KeyD":
-          case "ArrowRight":
-            this.players[id].movingRight = true;
-            break;
-          case "KeyI":
-          case "KeyO":
-            if (!this.players[id].pressedIYHK) {
-              this.players[id].pressedNE = true;
-              this.players[id].pressedIYHK = true;
-            }
-            break;
-          case "KeyY":
-          case "KeyU":
-            if (!this.players[id].pressedIYHK) {
-              this.players[id].pressedNW = true;
-              this.players[id].pressedIYHK = true;
-            }
-            break;
-          case "KeyH":
-          case "KeyJ":
-            if (!this.players[id].pressedIYHK) {
-              this.players[id].pressedSW = true;
-              this.players[id].pressedIYHK = true;
-            }
-            break;
-          case "KeyK":
-          case "KeyL":
-            if (!this.players[id].pressedIYHK) {
-              this.players[id].pressedSE = true;
-              this.players[id].pressedIYHK = true;
-            }
-            break;
-        }
-        // Consume the event so it doesn't get handled twice
+    keyboardInput(id,eventcode,isPressed) {
+      if(eventcode[0]=='m'){
+        this.players[id][eventcode]=isPressed;
       }
-      keyUnpressed(id,eventcode) {
-        switch (eventcode) {
-          case "KeyS":
-          case "ArrowDown":
-            this.players[id].movingDown = false;
-            break;
-          case "KeyW":
-          case "ArrowUp":
-            this.players[id].movingUp = false;
-            break;
-          case "KeyA":
-          case "ArrowLeft":
-            this.players[id].movingLeft = false;
-            break;
-          case "KeyD":
-          case "ArrowRight":
-            this.players[id].movingRight = false;
-            break;
-          case "KeyI":
-          case "KeyO":
-              if (this.players[id].pressedNE) {
-              this.players[id].pressedNE = false;
-              this.players[id].pressedIYHK = false;
-            }
-            break;
-          case "KeyY":
-          case "KeyU":
-            if (this.players[id].pressedNW) {
-              this.players[id].pressedNW = false;
-              this.players[id].pressedIYHK = false;
-            }
-            break;
-          case "KeyH":
-          case "KeyJ":
-            if (this.players[id].pressedSW) {
-              this.players[id].pressedSW = false;
-              this.players[id].pressedIYHK = false;
-            }
-            break;
-          case "KeyK":
-          case "KeyL":
-            if (this.players[id].pressedSE) {
-              this.players[id].pressedSE = false;
-              this.players[id].pressedIYHK = false;
-            }
-            break;
+      else{
+        if (isPressed^this.players[id].pressedIYHK) {
+          this.players[id][eventcode] = isPressed;
+          this.players[id].pressedIYHK = isPressed;
         }
-      }
-    
+      }    
+    }
+
       playerMovement() {
         Object.keys(this.players).forEach((id)=>{
           if (!this.players[id].alive) {

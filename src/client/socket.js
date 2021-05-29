@@ -1,24 +1,38 @@
 const socket = io();
 
+keyboarddMap={
+  "KeyS"      : "movingDown",
+  "ArrowDown" : "movingDown",
+  "KeyW"      : "movingUp",
+  "ArrowUp"   : "movingUp",
+  "KeyA"      : "movingLeft",
+  "ArrowLeft" : "movingLeft",
+  "KeyD"      : "movingRight",
+  "ArrowRight": "movingRight",
+  "KeyI"      : "pressedNE",
+  "KeyO"      : "pressedNE",
+  "KeyY"      : "pressedNW",
+  "KeyU"      : "pressedNW",
+  "KeyH"      : "pressedSW",
+  "KeyJ"      : "pressedSW",
+  "KeyK"      : "pressedSE",
+  "KeyL"      : "pressedSE",
+}
+
 function sendEvent(tag,id){
   return (e) => {
-    if (e.defaultPrevented) {
-      return; // Do nothing if event already handled
+    if(e.type=="keyup"||e.type=="keydown"){
+      if (e.defaultPrevented) {
+        return; // Do nothing if event already handled
+      }
+      socket.emit(tag, id, keyboarddMap[e.code]);
+      e.preventDefault();
     }
-    socket.emit(tag, id, e.code);
-    e.preventDefault();
   }
 }
 
 function redirect(tag){
-  switch(tag){
-    case "ffa":
-      window.location.href=window.location.origin+"/single";
-      break;
-    case "single":
-      window.location.href="./single";
-      break;
-  };
+  window.location.href=window.location.origin+tag;
 }
 
 function gameSet(tag){
@@ -38,10 +52,10 @@ function gameSet(tag){
       socket.on('dead', ()=>{
         socket.close();
         if (confirm(`You're dead! Restart?`)) {
-          redirect("ffa");
+          redirect("/ffa");
         }
         else{
-          redirect("main");
+          redirect("/");
         }
       });
 

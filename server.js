@@ -11,7 +11,7 @@ app.get('/', (req, res) => {
 });
 
 app.get('/ffa', (req, res) => {
-  res.sendFile(__dirname + '/src/client/html/single.html');
+  res.sendFile(__dirname + '/src/client/html/ffa.html');
 });
 
 app.get('/single', (req, res) => {
@@ -36,13 +36,13 @@ io.on('connection', (socket) => {
 
   socket.on('keydown', (id,msg) => {
     if(id in game.players){
-      game.keyPressed(id,msg);
+      game.keyboardInput(id,msg,true);
     }
   });
 
   socket.on('keyup', (id,msg) => {
     if(id in game.players){
-      game.keyUnpressed(id,msg);
+      game.keyboardInput(id,msg,false);
     }
   });
 
