@@ -44,6 +44,7 @@ class Game {
     static numColumns = 120;
     static numRows = 90;
     constructor(_io) {
+      this.gametime=0;
       this.io = _io;
       this.sockets = {};
       this.players ={};
@@ -60,14 +61,16 @@ class Game {
     }
   
     update () {
+      this.gametime++;
       // io.emit('chat message', "This is a useless message :)");
       this.checkSurrounding();
       this.playerMovement();
       this.gliderUpdate();
       this.updateCoolTime();
-      this.checkPlayerIsAlive();
       this.encodeBytes();
-      this.io.emit('draw', this.buffer,this.getPlayerPos());
+      this.io.emit('draw',this.gametime, this.buffer,this.getPlayerPos());
+
+      this.checkPlayerIsAlive();
     }
 
     createGrid() {

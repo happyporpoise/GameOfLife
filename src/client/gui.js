@@ -241,9 +241,18 @@ function decodeBytes(buffer,cb){
   }
 }
 
+let gametime=0;
+let initTime=-1;
 
 function draw(id,cb){
-  return (buffer,playerPos) => {
+  return (_gametime,buffer,playerPos) => {
+
+    gametime=Math.floor(_gametime/10);
+    if(initTime<0) initTime=gametime;
+
+    document.getElementById('clock1').textContent="Time:\t"+Math.floor(gametime/3600)+"h\t"+gametime+"s";
+    document.getElementById('clock2').textContent="My Age:\t"+(gametime-initTime)+"s";
+
     decodeBytes(buffer,cb)
     
     if(id in playerPos){

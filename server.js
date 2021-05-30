@@ -55,6 +55,11 @@ io.on('connection', (socket) => {
       numRows: Game.numRows,
     });
   });
+
+  socket.on('disconnect',(reason)=>{
+    console.log(reason);
+    if(socket.id in game.players) delete game.players[socket.id];
+  });
 });
 
 http.listen(port, () => {
