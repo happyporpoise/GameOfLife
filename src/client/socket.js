@@ -22,7 +22,7 @@ keyboarddMap={
 function sendEvent(tag,id){
   return (e) => {
     if(e.type=="keyup"||e.type=="keydown"){
-      if (e.defaultPrevented) {
+      if (e.defaultPrevented || !(e.code in keyboarddMap)) {
         return; // Do nothing if event already handled
       }
       socket.emit(tag, id, keyboarddMap[e.code]);

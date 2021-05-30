@@ -52,10 +52,10 @@ class Game {
   
       this.gameObjects = []; // array of Cells
       this.createGrid();
-      //this.gamePlayer = new Player(
-      //  Math.floor(Game.numColumns / 2),
-      //  Math.floor(Game.numRows / 2)
-      //);
+
+      this.buffer= new ArrayBuffer(-Math.floor(-Game.numColumns*Game.numRows/32)*4);
+      this.bufferView= new Uint32Array(this.buffer);
+
       setInterval(this.update.bind(this), 1000 / 10);
     }
   
@@ -66,7 +66,8 @@ class Game {
       this.gliderUpdate();
       this.updateCoolTime();
       this.checkPlayerIsAlive();
-      this.io.emit('draw', this.gameObjects, this.players);
+      this.encodeBytes();
+      this.io.emit('draw', this.buffer,this.getPlayerPos());
     }
 
     createGrid() {
@@ -350,6 +351,34 @@ class Game {
         else{
           this.addPlayer(id);
         }
+      }
+
+      encodeBytes(){
+        //Use TypedArrays to work with byte data.
+        //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+        //signed 32 bits(8bytes) integer for the viewer
+        let uint32num=0;
+        for(let i=0;i<this.gameObjects.length;i++){
+          uint32num += (this.gameObjects[i].alive)<<(i%32);
+          if(i%32==31){
+            this.bufferView[i>>5]=uint32num;
+            uint32num=0;
+          }
+        }
+        if(this.gameObjects.length%32!=0){
+          this.bufferView[this.gameObjects.length>>5]=uint32num;
+        }
+      }
+
+      getPlayerPos(){
+        let pos={};
+        Object.keys(this.players).forEach(key => {
+          pos[key]={
+            "gridX":this.players[key].gridX,
+            "gridY":this.players[key].gridY
+          };
+        });
+        return pos;
       }
   }
 

@@ -1,9 +1,10 @@
+//const { numRows } = require("../../GameOfLife");
+
 let myCanvas = document.getElementById('myCanvas');
 let myContext = myCanvas.getContext("2d");
 myCanvas.width = window.innerWidth;
 myCanvas.height = window.innerHeight;
 
-console.log("qve4");
 //let GUI_MODE="PLAIN";
 //let GUI_MODE="PLAIN-NUT";
 let GUI_MODE="SPACEDECAY";
@@ -24,6 +25,15 @@ class colorBoard{
 
   constructor(){
     console.log(this);
+    this.cellAlive=new Array(-Math.floor(-numColumns*numRows/32)*32);
+
+    this.gridX=new Array(numColumns*numRows);
+    this.gridY=new Array(numColumns*numRows);
+    for(let i=0;i<numColumns*numRows;i++){
+      this.gridX[i]= i % numColumns;
+      this.gridY[i]= Math.floor(i/numColumns);
+    }
+
     this.decay_counts=new Array(numRows*numColumns);
     for (let i = 0; i < this.decay_counts.length; i++){
       this.decay_counts[i]=0;
@@ -209,47 +219,69 @@ function setupVar(cb){
   };
 }
 
+let gamePlayer={'gridX':0,'gridY':0};
 
-let gamePlayer={};
-    
+//let buffer= new ArrayBuffer(-Math.floor(-Game.numColumns*Game.numRows/32)*4);
+//let bufferView= new Int32Array(this.buffer);
+
+// 
+
+function decodeBytes(buffer,cb){
+  //Use TypedArrays to work with byte data.
+  //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+  //unsigned 32 bits(8bytes) integer for the viewer
+  const bits=32;
+  let bufferView= new Uint32Array(buffer);
+  let uint32num =0;
+  for(let i=0;i<bufferView.length;i++){
+    uint32num=bufferView[i];
+    for(let j = 0;j<bits;j++){
+      cb.cellAlive[i*bits+j]=uint32num>>>j<<(bits-1)>>>(bits-1);
+    }
+  }
+}
+
+
 function draw(id,cb){
-  return (gameCells, players) => {
-    if(id in players){
-      gamePlayer=players[id];
+  return (buffer,playerPos) => {
+    decodeBytes(buffer,cb)
+    
+    if(id in playerPos){
+      gamePlayer=playerPos[id];
     }
     if(GUI_MODE=="PLAIN"){
       myContext.fillStyle="#595959";
       myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
     }
     else if(GUI_MODE=="SPACEDECAY"){
-      update(gameCells,cb);
+      update(cb);
     }
     else{
       myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
     }
 
-    gameCells.forEach(element => {
-      cb.drawPixel((element.alive ? "cellAlive" : "cellDead")
-        + ((GUI_MODE=="SPACEDECAY") ? cb.color_list[cb.decay_counts[element.gridX + element.gridY * numColumns]] : ""),
-        element.gridX-gamePlayer.gridX,
-        element.gridY-gamePlayer.gridY
+    for(let i=0;i<numRows*numColumns;i++){
+      cb.drawPixel((cb.cellAlive[i] ? "cellAlive" : "cellDead")
+        + ((GUI_MODE=="SPACEDECAY") ? cb.color_list[cb.decay_counts[cb.gridX[i] + cb.gridY[i] * numColumns]] : ""),
+        cb.gridX[i]-gamePlayer.gridX,
+        cb.gridY[i]-gamePlayer.gridY
       );
-    });
+    }
     
-    Object.keys(players).forEach((_id) => {
+    Object.keys(playerPos).forEach((_id) => {
       cb.drawPixel("player",
-        players[_id].gridX-gamePlayer.gridX,
-        players[_id].gridY-gamePlayer.gridY
+        playerPos[_id].gridX-gamePlayer.gridX,
+        playerPos[_id].gridY-gamePlayer.gridY
       );
     });
 
-    if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
+    //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
   };
 }
 
-function update(gameCells,cb){
+function update(cb){
   for (let i = 0; i < cb.decay_counts.length; i++) {
-    if(gameCells[i].alive){
+    if(cb.cellAlive[i]){
       cb.decay_counts[i]=0;
     } 
     else{

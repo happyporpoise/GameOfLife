@@ -19,12 +19,12 @@ app.get('/single', (req, res) => {
 });
 
 app.get('/src/client/:fileName', function (req, res) {
-  console.log(req.params.fileName)
+  //console.log(req.params.fileName)
   res.sendFile(__dirname + '/src/client/'+req.params.fileName);
 });
 
 app.get('/static/:fileName', function (req, res) {
-  console.log(req.params.fileName)
+  //console.log(req.params.fileName)
   res.sendFile(__dirname + '/static/'+req.params.fileName);
 });
 
@@ -35,13 +35,13 @@ io.on('connection', (socket) => {
   });
 
   socket.on('keydown', (id,msg) => {
-    if(id in game.players){
+    if(id in game.players && msg!=null ){
       game.keyboardInput(id,msg,true);
     }
   });
 
   socket.on('keyup', (id,msg) => {
-    if(id in game.players){
+    if(id in game.players && msg!=null){
       game.keyboardInput(id,msg,false);
     }
   });
