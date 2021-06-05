@@ -4,6 +4,8 @@ let myCanvas = document.getElementById('myCanvas');
 let myContext = myCanvas.getContext("2d");
 myCanvas.width = window.innerWidth;
 myCanvas.height = window.innerHeight;
+let xcenter=myCanvas.width/2;
+let ycenter=myCanvas.height/2;
 
 //let GUI_MODE="PLAIN";
 //let GUI_MODE="PLAIN-NUT";
@@ -35,9 +37,7 @@ class colorBoard{
     }
 
     this.decay_counts=new Array(numRows*numColumns);
-    for (let i = 0; i < this.decay_counts.length; i++){
-      this.decay_counts[i]=0;
-    }
+    
     this.maxDecay=0;
     this.color_list = [];
   }
@@ -119,7 +119,12 @@ class colorBoard{
     //Set maxDecay
     let newmax=this.color_list.length-1;
     for(let i=0;i<this.decay_counts.length;i++){
-      if (this.decay_counts[i]==this.maxDecay) this.decay_counts[i]=newmax;
+      if (this.decay_counts[i]==this.maxDecay) {
+        this.decay_counts[i]=newmax;
+      }
+      else{
+        this.decay_counts[i]=Math.floor(newmax/2);
+      }
     }
     this.maxDecay=newmax;
   }
@@ -246,6 +251,10 @@ let initTime=-1;
 
 function draw(id,cb){
   return (_gametime,buffer,playerPos) => {
+    myCanvas.width = window.innerWidth;
+    myCanvas.height = window.innerHeight;
+    myContext.fillStyle='#000000';
+    myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
 
     gametime=Math.floor(_gametime/10);
     if(initTime<0) initTime=gametime;
@@ -298,3 +307,4 @@ function update(cb){
     }
   }
 }
+
