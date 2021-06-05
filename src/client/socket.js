@@ -1,4 +1,4 @@
-const socket = io();
+let socket = io();
 
 keyboarddMap={
   "KeyS"      : "movingDown",
@@ -32,6 +32,10 @@ function sendEvent(tag,id){
 }
 
 function redirect(tag){
+  window.location.href=window.location.origin+tag;
+}
+
+function setUser(name){
   window.location.href=window.location.origin+tag;
 }
 
