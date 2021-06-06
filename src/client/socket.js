@@ -63,24 +63,27 @@ function gameSet(tag){
       numColumns=response.numColumns;
       numRows=response.numRows;
 
-      let cb=new colorBoard();
-      this.cb=cb;
+    let cb = new colorBoard();
+    this.cb = cb;
 
-      setupVar(cb)(GUI_MODE);
-      console.log(response.id);
+    setupVar(cb)(GUI_MODE);
+    console.log(response.id);
+    let myID = response.id;
 
-      socket.on('draw', draw(response.id,cb));
-      socket.on('dead', ()=>{
-        socket.close();
-        if (confirm(`You're dead! Restart?`)) {
-          redirect("/ffa");
-        }
-        else{
-          redirect("/");
-        }
-      });
+    // socket.on("draw", draw(response.id, cb));
+    socket.on("gameUpdate", processGameUpdate);
+    initState();
+    startRendering(myID, cb);
+    socket.on("dead", () => {
+      socket.close();
+      if (confirm(`You're dead! Restart?`)) {
+        redirect("/ffa");
+      } else {
+        redirect("/");
+      }
+    });
 
-      window.addEventListener("keydown", sendEvent("keydown",response.id));
-      window.addEventListener("keyup", sendEvent("keyup",response.id));
-  });  
+    window.addEventListener("keydown", sendEvent("keydown", response.id));
+    window.addEventListener("keyup", sendEvent("keyup", response.id));
+  });
 }
