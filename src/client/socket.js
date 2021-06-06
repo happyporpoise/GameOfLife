@@ -1,4 +1,5 @@
-let socket = io();
+window.username="Anonymous";
+const socket = io();
 
 keyboarddMap={
   "KeyS"      : "movingDown",
@@ -32,16 +33,32 @@ function sendEvent(tag,id){
 }
 
 function redirect(tag){
+  window.localStorage.setItem('username', username);
   window.location.href=window.location.origin+tag;
 }
 
-function setUser(name){
-  window.location.href=window.location.origin+tag;
+function setUser(){
+  window.username=document.getElementById("usernameInput").value;
+  socket.emit("setUser", {'name': window.username },
+    (response) => {if(response.assigned){
+      document.getElementById("nameButton").textContent=window.username;
+      document.getElementById("usernameInput").value="";
+    }
+    else{
+      alert(`Username ${window.username} already exists`);
+      window.username="Anonymous";
+    }
+  });
 }
 
 function gameSet(tag){
-  
-  socket.emit("gameSet", 'ffa', { username: "Anonymous" },
+  // Somewhere else
+  window.username = window.localStorage.getItem('username');
+  if(window.username=="Anonymous"){
+    window.username="Anonymous"+socket.id;
+  }
+  console.log(socket);
+  socket.emit("gameSet", 'ffa', { name: window.username },
     (response) => {
       numColumns=response.numColumns;
       numRows=response.numRows;
