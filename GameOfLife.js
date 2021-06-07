@@ -74,7 +74,7 @@ class Game {
       t: Date.now(),
       gametime: this.gametime,
       buffer: this.buffer,
-      PlayerPos: this.getPlayerPos(),
+      playerPos: this.getPlayerPos(),
     });
     this.checkPlayerIsAlive();
   }
@@ -173,13 +173,13 @@ class Game {
   }
 
   checkPlayerIsAlive() {
-    Object.keys(this.players).forEach((id) => {
+    Object.keys(this.players).forEach((socketid) => {
       if (
-        this.players[id].alive &&
-        this.isAlive(this.players[id].gridX, this.players[id].gridY) === 1
+        this.players[socketid].alive &&
+        this.isAlive(this.players[socketid].gridX, this.players[socketid].gridY) === 1
       ) {
-        delete this.players[id];
-        this.io.to(id).emit("dead");
+        this.io.to(socketid).emit("dead");
+        delete this.players[socketid];
       }
     });
   }
@@ -351,13 +351,13 @@ class Game {
     });
   }
 
-  addPlayer(id) {
+  addPlayer(socketid) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
     if (!randCell.alive) {
-      this.players[id] = new Player(randCell.gridX, randCell.gridY);
+      this.players[socketid] = new Player(randCell.gridX, randCell.gridY);
     } else {
-      this.addPlayer(id);
+      this.addPlayer(socketid);
     }
   }
 

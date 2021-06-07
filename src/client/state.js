@@ -9,20 +9,6 @@ function initState() {
   firstServerTimestamp = 0;
 }
 
-// export function processGameUpdate(update) {
-//   if (!firstServerTimestamp) {
-//     firstServerTimestamp = update.t;
-//     gameStart = Date.now();
-//   }
-//   gameUpdates.push(update);
-
-//   // Keep only one game update before the current server time
-//   const base = getBaseUpdate();
-//   if (base > 0) {
-//     gameUpdates.splice(0, base);
-//   }
-// }
-
 function processGameUpdate(update) {
   if (!firstServerTimestamp) {
     firstServerTimestamp = update.t;
@@ -56,13 +42,13 @@ function getBaseUpdate() {
 
 function getCurrentState() {
   if (!firstServerTimestamp) {
-      console.log(`we haven't gotten any updates yet`);
+      //console.log(`we haven't gotten any updates yet`);
     return {};
   }
 
   const base = getBaseUpdate();
   const serverTime = currentServerTime();
-  console.log(base);
+  //console.log(base);
   // If base is the most recent update we have, use its state.
   // Else, interpolate between its state and the state of (base + 1).
   if (base < 0) {

@@ -8,8 +8,8 @@ let xcenter = myCanvas.width / 2;
 let ycenter = myCanvas.height / 2;
 
 //let GUI_MODE="PLAIN";
-let GUI_MODE="PLAIN-NUT";
-//let GUI_MODE = "SPACEDECAY";
+//let GUI_MODE="PLAIN-NUT";
+let GUI_MODE = "SPACEDECAY";
 //let GUI_MODE="NONE";
 
 //const CanvasColumns = -Math.floor(-myCanvas.width);
@@ -24,8 +24,10 @@ function mod(n, m) {
 }
 
 class colorBoard {
-  constructor() {
-    console.log(this);
+  constructor(numColumns,numRows) {
+    this.numColumns=numColumns;
+    this.numRows=numRows; 
+
     this.cellAlive = new Array(-Math.floor((-numColumns * numRows) / 32) * 32);
 
     this.gridX = new Array(numColumns * numRows);
@@ -39,6 +41,7 @@ class colorBoard {
 
     this.maxDecay = 0;
     this.color_list = [];
+    console.log(this);
   }
 
   static hexToRgb(hex) {
@@ -69,24 +72,24 @@ class colorBoard {
   static colorScheme = {
     TACHYON: [
       ["#000000", NaN],
-      ["#baeaf5", 3],
-      ["#5fc6ff", 5],
-      ["#E76583", 20],
-      ["#44008b", 40],
-      ["#123067", 40],
-      ["#13076f", 50],
-      ["#13174f", 100],
-      ["#281232", 190],
-      ["#20080e", 90],
+      ["#baeaf5", 3*12],
+      ["#5fc6ff", 5*12],
+      ["#E76583", 20*12],
+      ["#44008b", 40*12],
+      ["#123067", 40*12],
+      ["#13076f", 50*12],
+      ["#13174f", 100*12],
+      ["#281232", 190*12],
+      ["#20080e", 90*12],
     ],
 
     TERRAIN: [
       ["#034077", NaN],
-      ["#7e2812", 3],
-      ["#eeb46f", 10],
-      ["#f3dcb5", 16 * 5],
-      ["#2da9cd", 16 * 8],
-      ["#269dc7", 16 * 4 * 8 * 2],
+      ["#7e2812", 3*12],
+      ["#eeb46f", 10*12],
+      ["#f3dcb5", 16 * 5*12],
+      ["#2da9cd", 16 * 8*12],
+      ["#269dc7", 16 * 4 * 8 * 2*12],
     ],
   };
 
@@ -146,7 +149,7 @@ class colorBoard {
     yoffset += 3;
     for (let i = 0; i < this.color_list.length; i++) {
       myContext.fillStyle = this.color_list[i];
-      let [x, y] = [i % numColumns, Math.floor(i / numColumns)];
+      let [x, y] = [i % this.numColumns, Math.floor(i / this.numColumns)];
       myContext.fillRect(
         x * Cellwidth,
         (yoffset + y) * Cellheight,
@@ -157,8 +160,8 @@ class colorBoard {
   }
 
   drawPixel(tag, x, y) {
-    let newx = mod(x + Math.floor(numColumns / 2), numColumns) * Cellwidth;
-    let newy = mod(y + Math.floor(numRows / 2), numRows) * Cellheight;
+    let newx = mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth;
+    let newy = mod(y + Math.floor(this.numRows / 2), this.numRows) * Cellheight;
 
     switch (GUI_MODE) {
       case "PLAIN":
@@ -203,14 +206,12 @@ class colorBoard {
   }
 }
 
-function setupVar(cb) {
-  return (_GUI_MODE) => {
-    let codeparse = _GUI_MODE.split(":");
+function setupVar(_GUI_MODE){
+  let codeparse = _GUI_MODE.split(":");
     GUI_MODE = codeparse.shift();
     if (GUI_MODE == "SPACEDECAY") {
-      codeparse.length > 0 ? cb.setDecayVars(codeparse[0]) : cb.setDecayVars();
+      codeparse.length > 0 ? window.cb.setDecayVars(codeparse[0]) : window.cb.setDecayVars();
     }
-  };
 }
 
 let gamePlayer = { gridX: 0, gridY: 0 };
@@ -239,9 +240,7 @@ function decodeBytes(buffer, cb) {
 let gametime = 0;
 let initTime = -1;
 
-function draw(id, cb) {
-  console.log(cb);
-  return (_gametime, buffer, playerPos) => {
+function draw(id, _gametime, buffer, playerPos){
     myCanvas.width = window.innerWidth;
     myCanvas.height = window.innerHeight;
     myContext.fillStyle = "#000000";
@@ -255,7 +254,7 @@ function draw(id, cb) {
     document.getElementById("clock2").textContent =
       "My Age:\t" + (gametime - initTime) + "s";
 
-    decodeBytes(buffer, cb);
+    decodeBytes(buffer, window.cb);
 
     if (id in playerPos) {
       gamePlayer = playerPos[id];
@@ -264,26 +263,26 @@ function draw(id, cb) {
       myContext.fillStyle = "#595959";
       myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
     } else if (GUI_MODE == "SPACEDECAY") {
-      update(cb);
+      update();
     } else {
       myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
     }
 
-    for (let i = 0; i < numRows * numColumns; i++) {
-      cb.drawPixel(
+    for (let i = 0; i < window.cb.numRows * window.cb.numColumns; i++) {
+      window.cb.drawPixel(
         (cb.cellAlive[i] ? "cellAlive" : "cellDead") +
           (GUI_MODE == "SPACEDECAY"
-            ? cb.color_list[
-                cb.decay_counts[cb.gridX[i] + cb.gridY[i] * numColumns]
+            ? window.cb.color_list[
+                window.cb.decay_counts[window.cb.gridX[i] + window.cb.gridY[i] * window.cb.numColumns]
               ]
             : ""),
-        cb.gridX[i] - gamePlayer.gridX,
-        cb.gridY[i] - gamePlayer.gridY
+        window.cb.gridX[i] - gamePlayer.gridX,
+        window.cb.gridY[i] - gamePlayer.gridY
       );
     }
 
     Object.keys(playerPos).forEach((_id) => {
-      cb.drawPixel(
+      window.cb.drawPixel(
         "player",
         playerPos[_id].gridX - gamePlayer.gridX,
         playerPos[_id].gridY - gamePlayer.gridY
@@ -291,29 +290,26 @@ function draw(id, cb) {
     });
 
     //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
-  };
 }
 
-function update(cb) {
-  for (let i = 0; i < cb.decay_counts.length; i++) {
-    if (cb.cellAlive[i]) {
-      cb.decay_counts[i] = 0;
+function update() {
+  for (let i = 0; i < window.cb.decay_counts.length; i++) {
+    if (window.cb.cellAlive[i]) {
+      window.cb.decay_counts[i] = 0;
     } else {
-      cb.decay_counts[i] = Math.min(cb.decay_counts[i] + 1, cb.maxDecay);
+      window.cb.decay_counts[i] = Math.min(window.cb.decay_counts[i] + 1, window.cb.maxDecay);
     }
   }
 }
 
-function render(id, cb) {
-  return () => {
-    const currentState = getCurrentState();
-    console.log(`playerPos = ${currentState.playerPos}`);
-    if (currentState != {}) {
-      draw(id, cb)(currentState.gametime, currentState.buffer, currentState.PlayerPos);
-    }
-  };
+function render(){
+  const currentState = getCurrentState();
+  if ('gametime' in currentState) {
+    draw(window.user.socketid,currentState.gametime, currentState.buffer, currentState.playerPos);
+  }
 }
+    
 
 function startRendering(id, cb) {
-  let renderInterval = setInterval(render(id, cb), 1000 / 60);
+  const renderInterval = setInterval(render, 1000 / 60);
 }

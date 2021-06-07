@@ -2,11 +2,11 @@ const app = require('express')();
 const http = require('http').Server(app);
 const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
+const users={};
 
 const e = require('express');
 const Game = require('./GameOfLife.js');
 const game = new Game(io);
-const users={};
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
@@ -48,32 +48,58 @@ io.on('connection', (socket) => {
     }
   });
 
-  socket.on("gameSet", (gametype, userinfo, callback) => {
-    game.addPlayer(userinfo.name);
-    console.log(Object.keys(game.players));
-    callback({
-      id:userinfo.name,
-      numColumns: Game.numColumns,
-      numRows: Game.numRows,
-    });
+  socket.on("gameSet", (gametype, userid, callback) => {
+    if(userid in users){
+      game.addPlayer(users[userid]['socketid']);
+      console.log(Object.keys(game.players));
+      callback({
+        id:userid,
+        numColumns: Game.numColumns,
+        numRows: Game.numRows,
+      });
+    }
   });
 
-  socket.on("setUser", (userinfo,callback) => {
-    const userid=userinfo.name;
-    if(userid in users){
-      console.log(false);
-      callback({assigned:false});
+  socket.on("setUser", (username,callback) => {
+    Object.keys(users).forEach(
+      (key)=>{
+        if(username==users[key].name){
+          callback({'id':undefined});
+          return;
+        }
+      }
+    );
+      
+    const userid=username+socket.id;
+    users[userid]={
+      'id':userid,
+      'name':username,
+      'socketid':socket.id
+    };
+    callback(users[userid]);
+    console.log("===== New User =====");
+    console.log(users[userid]);
+  });
+
+  socket.on("updateUser", (user,callback) => {
+    if("id" in user && user['id'] in users){
+      Object.keys(user).forEach(
+        (key)=>{users[user['id']][key]=user[key];}
+      );
+      console.log("===== Update User =====");
+      console.log(user);  
+      callback(true);
     }
     else{
-      userinfo.socketid=socket.id;
-      users[userid]=userinfo;
-      callback({assigned:true});
+      callback(false);
     }
-    console.log(users);
   });
 
   socket.on('disconnect',(reason)=>{
     console.log(reason);
+    if(reason=='transport close'){
+
+    }
     if(socket.id in game.players) delete game.players[socket.id];
   });
 });

@@ -1,5 +1,9 @@
-window.username="Anonymous";
 const socket = io();
+window.user={
+  'id':undefined,
+  'name':'Anonymous',
+  'socketid':socket.id
+};
 
 keyboarddMap={
   "KeyS"      : "movingDown",
@@ -33,57 +37,70 @@ function sendEvent(tag,id){
 }
 
 function redirect(tag){
-  window.localStorage.setItem('username', username);
+
+  if(window.user.id==undefined){
+    alert("Please set your username");
+    return;
+  };
+  window.localStorage.setItem('user', JSON.stringify(window.user));
   window.location.href=window.location.origin+tag;
 }
 
 function setUser(){
-  window.username=document.getElementById("usernameInput").value;
-  socket.emit("setUser", {'name': window.username },
-    (response) => {if(response.assigned){
-      document.getElementById("nameButton").textContent=window.username;
-      document.getElementById("usernameInput").value="";
-    }
-    else{
-      alert(`Username ${window.username} already exists`);
-      window.username="Anonymous";
-    }
+  let username=document.getElementById("usernameInput").value;
+  if(username==""){username="Anonymous-"+socket.id.slice(16)};
+
+  if(username==window.user.name && window.user.id !=undefined){
+    return;
+  }
+
+  socket.emit("setUser", username ,
+    (response) => {
+      if(response.id!=undefined){
+        window.user=response;
+        document.getElementById("nameButton").textContent=response.name;
+        document.getElementById("usernameInput").value="";
+      }
+      else{
+        alert(`Username ${username} already exists`);
+      }
   });
 }
 
 function gameSet(tag){
   // Somewhere else
-  window.username = window.localStorage.getItem('username');
-  if(window.username=="Anonymous"){
-    window.username="Anonymous"+socket.id;
-  }
-  console.log(socket);
-  socket.emit("gameSet", 'ffa', { name: window.username },
-    (response) => {
-      numColumns=response.numColumns;
-      numRows=response.numRows;
+  socket.on('connect', () => {
+    window.user = JSON.parse(window.localStorage.getItem('user'));
+    window.user['socketid']=socket.id;
 
-    let cb = new colorBoard();
-    this.cb = cb;
+    socket.emit("updateUser",window.user,
+      (response)=>{
+        if(!response){
+          redirect("/");
+        }
+        socket.emit("gameSet", 'ffa', window.user.id,
+          (response) => {
+            
+            window.cb=new colorBoard(response.numColumns,response.numRows);;
 
-    setupVar(cb)(GUI_MODE);
-    console.log(response.id);
-    let myID = response.id;
+            setupVar(GUI_MODE);
+            
+            socket.on("gameUpdate", processGameUpdate);
+            initState();
+            startRendering(socket.id, cb);
+            socket.on("dead", () => {
+              socket.close();
+              if (confirm(`You're dead! Restart?`)) {
+                redirect("/ffa");
+              } else {
+                redirect("/");
+              }
+            });
 
-    // socket.on("draw", draw(response.id, cb));
-    socket.on("gameUpdate", processGameUpdate);
-    initState();
-    startRendering(myID, cb);
-    socket.on("dead", () => {
-      socket.close();
-      if (confirm(`You're dead! Restart?`)) {
-        redirect("/ffa");
-      } else {
-        redirect("/");
+            window.addEventListener("keydown", sendEvent("keydown", socket.id));
+            window.addEventListener("keyup", sendEvent("keyup", socket.id));
+        });
       }
-    });
-
-    window.addEventListener("keydown", sendEvent("keydown", response.id));
-    window.addEventListener("keyup", sendEvent("keyup", response.id));
+    );
   });
 }
