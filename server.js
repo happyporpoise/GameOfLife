@@ -6,7 +6,7 @@ const users={};
 
 const e = require('express');
 const Game = require('./GameOfLife.js');
-const game = new Game(io);
+const games = {"FFA" : new Game(io,"FFA",90*2,120*2)};
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
@@ -37,26 +37,48 @@ io.on('connection', (socket) => {
   });
 
   socket.on('keydown', (id,msg) => {
-    if(id in game.players && msg!=null ){
-      game.keyboardInput(id,msg,true);
+    if(id in users){
+      let game=games[users[id].gamekey];
+      if(socket.id==users[id].socketid && socket.id in game.players && msg!=null ){
+        game.keyboardInput(socket.id,msg,true);
+      }
     }
   });
 
   socket.on('keyup', (id,msg) => {
-    if(id in game.players && msg!=null){
-      game.keyboardInput(id,msg,false);
+    if(id in users){
+      let game=games[users[id].gamekey];
+      if(socket.id==users[id].socketid && socket.id in game.players && msg!=null ){
+        game.keyboardInput(socket.id,msg,false);
+      }
     }
   });
 
   socket.on("gameSet", (gametype, userid, callback) => {
     if(userid in users){
-      game.addPlayer(users[userid]['socketid']);
-      console.log(Object.keys(game.players));
-      callback({
-        id:userid,
-        numColumns: Game.numColumns,
-        numRows: Game.numRows,
-      });
+      if(gametype=="FFA"){
+        socket.join("FFA");
+        games['FFA'].addPlayer(users[userid]['socketid']);
+        users[userid]["gamekey"]="FFA";
+        console.log(Object.keys(games['FFA'].players));
+        callback({
+          id:userid,
+          numColumns: games['FFA'].numColumns,
+          numRows: games['FFA'].numRows,
+        });
+      }
+      if(gametype=="SINGLE"){
+        socket.join(socket.id);
+        games[socket.id]=new Game(io,socket.id,40,40);
+        games[socket.id].addPlayer(users[userid]['socketid']);
+        users[userid]["gamekey"]=socket.id;
+        console.log(Object.keys(games['FFA'].players));
+        callback({
+          id:userid,
+          numColumns: games[socket.id].numColumns,
+          numRows: games[socket.id].numRows,
+        });
+      }
     }
   });
 
@@ -100,7 +122,8 @@ io.on('connection', (socket) => {
     if(reason=='transport close'){
 
     }
-    if(socket.id in game.players) delete game.players[socket.id];
+    if(socket.id in games['FFA'].players) delete games['FFA'].players[socket.id];
+    if(socket.id in games) delete games[socket.id];
   });
 });
 

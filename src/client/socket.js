@@ -78,7 +78,7 @@ function gameSet(tag){
         if(!response){
           redirect("/");
         }
-        socket.emit("gameSet", 'ffa', window.user.id,
+        socket.emit("gameSet", tag , window.user.id,
           (response) => {
             
             window.cb=new colorBoard(response.numColumns,response.numRows);;
@@ -92,8 +92,8 @@ function gameSet(tag){
               gameEnd()
             });
 
-            window.addEventListener("keydown", sendEvent("keydown", socket.id));
-            window.addEventListener("keyup", sendEvent("keyup", socket.id));
+            window.addEventListener("keydown", sendEvent("keydown", window.user.id));
+            window.addEventListener("keyup", sendEvent("keyup", window.user.id));
         });
       }
     );
