@@ -87,14 +87,9 @@ function gameSet(tag){
             
             socket.on("gameUpdate", processGameUpdate);
             initState();
-            startRendering(socket.id, cb);
+            startRendering();
             socket.on("dead", () => {
-              socket.close();
-              if (confirm(`You're dead! Restart?`)) {
-                redirect("/ffa");
-              } else {
-                redirect("/");
-              }
+              gameEnd()
             });
 
             window.addEventListener("keydown", sendEvent("keydown", socket.id));
@@ -103,4 +98,15 @@ function gameSet(tag){
       }
     );
   });
+}
+
+
+function gameEnd(){
+  socket.close();
+  document.getElementById('btn-group2').style.visibility='visible';
+              // if (confirm(`You're dead! Restart?`)) {
+              //   redirect("/ffa");
+              // } else {
+              //   redirect("/");
+              // }
 }

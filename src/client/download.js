@@ -5,9 +5,6 @@ const img_names = [
   'player.png',
 ];
 
-let numColumns = 0;
-let numRows = 0;
-
 const imgs = {};
 const downloadPromise = Promise.all(img_names.map(downloadImage));
 function downloadImage(file_name) {

@@ -14,10 +14,10 @@ let GUI_MODE = "SPACEDECAY";
 
 //const CanvasColumns = -Math.floor(-myCanvas.width);
 //const CanvasRows = -Math.floor(-myCanvas.rows);
-const Cellwidth = 10;
-const Cellheight = 10;
-const Playerwidth = 10;
-const Playerheight = 10;
+const Cellwidth = 15;
+const Cellheight = 15;
+const Playerwidth = 15;
+const Playerheight = 15;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -160,8 +160,10 @@ class colorBoard {
   }
 
   drawPixel(tag, x, y) {
-    let newx = mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth;
-    let newy = mod(y + Math.floor(this.numRows / 2), this.numRows) * Cellheight;
+    let newx = mod(x +Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth
+                +Math.floor(myCanvas.width/2-this.numColumns / 2* Cellwidth);
+    let newy = mod(y +Math.floor(this.numRows / 2), this.numRows) * Cellheight
+                +Math.floor(myCanvas.height/2-this.numRows / 2* Cellheight);
 
     switch (GUI_MODE) {
       case "PLAIN":
@@ -310,6 +312,6 @@ function render(){
 }
     
 
-function startRendering(id, cb) {
+function startRendering() {
   const renderInterval = setInterval(render, 1000 / 60);
 }
