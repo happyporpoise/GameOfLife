@@ -25,6 +25,18 @@ body {
     margin: 0.25rem;
   }
 
+  #usernameInput {
+    text-align: center; 
+    background-color: #444; /* Green background */
+    border: 1px solid gray; /* Green border */
+    color: white; /* White text */
+    padding: 10px 24px; /* Some padding */
+    cursor: pointer; /* Pointer/hand icon */
+    width: 80%; /* Set a width if needed */
+    display: block; /* Make the buttons appear below each other */
+  }
+  
+
   #input:focus {
     outline: none;
   }
@@ -87,7 +99,7 @@ body {
     transform: translateY(-50%);
   }
   
-  .btn-group2 button {
+  .btn-group2 button {    
     background-color: #333; /* Green background */
     border: 1px solid gray; /* Green border */
     color: white; /* White text */

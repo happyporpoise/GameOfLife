@@ -1,4 +1,10 @@
 const socket = io();
+socket.on('timeOut',()=>{
+  socket.close();
+  alert("Your session is timed out");
+  redirect("/");
+});
+
 window.user={
   'id':undefined,
   'name':'Anonymous',
@@ -118,7 +124,7 @@ function gameEnd(tag,i){
   if(tag=="singleClear"){
     document.getElementById("gameResult").textContent="CLEAR!"
     const rankingButton=document.createElement("button");
-    rankingButton.textContent="RANKING #"+i
+    rankingButton.textContent="RANKING #"+(i+1);
     document.getElementById('btn-group2').appendChild(rankingButton);
   }
   document.getElementById('btn-group2').style.visibility='visible';

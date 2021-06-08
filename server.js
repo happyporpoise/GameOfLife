@@ -8,7 +8,7 @@ const users={};
 //const db = new sqlite3.Database('./rankingBoard.db');
 
 const Game = require('./GameOfLife.js');
-const games = {"FFA" : new Game(io,"FFA",90*2,120*2)};
+const games = {"FFA" : new Game(io,"FFA",240,240)};
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
@@ -71,7 +71,7 @@ io.on('connection', (socket) => {
       }
       if(gametype=="SINGLE"){
         socket.join(socket.id);
-        games[socket.id]=new Game(io,socket.id,40,40);
+        games[socket.id]=new Game(io,socket.id,50,50);
         games[socket.id].addPlayer(users[userid]['socketid'],users[userid]['name']);
         users[userid]["gamekey"]=socket.id;
         console.log(Object.keys(games['FFA'].players));
@@ -98,7 +98,8 @@ io.on('connection', (socket) => {
     users[userid]={
       'id':userid,
       'name':username,
-      'socketid':socket.id
+      'socketid':socket.id,
+      'timeOut':false
     };
     callback(users[userid]);
     console.log("===== New User =====");
@@ -107,6 +108,8 @@ io.on('connection', (socket) => {
 
   socket.on("updateUser", (user,callback) => {
     if("id" in user && user['id'] in users){
+      user.socketid=socket.id;
+      user.timeOut=false;
       Object.keys(user).forEach(
         (key)=>{users[user['id']][key]=user[key];}
       );
@@ -121,9 +124,6 @@ io.on('connection', (socket) => {
 
   socket.on('disconnect',(reason)=>{
     console.log(reason);
-    if(reason=='transport close'){
-
-    }
     if(socket.id in games['FFA'].players) delete games['FFA'].players[socket.id];
     if(socket.id in games) delete games[socket.id];
   });
@@ -133,3 +133,21 @@ http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
 });
 
+
+const timeOut=setInterval(()=>{
+  Object.keys(users).forEach((userid)=>{
+    const socketid=users[userid].socketid;
+    if(socketid in games['FFA'].players || socketid in games){
+      users[userid]['timeOut']=false;
+    }
+    else{
+      if(users[userid]['timeOut']){
+        delete users[userid];
+        io.to(socketid).emit('timeOut');
+      }
+      else{
+        users[userid]['timeOut']=true;
+      }
+    }
+  })
+}, 1000 * 60 * 5 );

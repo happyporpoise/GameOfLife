@@ -1,6 +1,16 @@
 "use strict";
 
-let ranking =[{"name":"hanSuh","time":1000}];
+const fs = require('fs');
+let ranking =JSON.parse(fs.readFileSync('ranking.txt',{encoding:'utf8', flag:'r'},(err,data)=>{
+  if (err) return console.log(err);}));
+
+function saveRanking(){
+  fs.writeFile('ranking.txt', JSON.stringify(ranking), function (err) {
+    if (err) return console.log(err);
+    console.log("ranking.txt saved");
+    console.log(JSON.stringify(ranking));
+  });
+}
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -12,7 +22,7 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = Math.random() > 0.95;
+    this.alive = Math.random() > 0.9;
   }
 }
 
@@ -202,6 +212,7 @@ class Game {
         'time':this.gametime
       } )
       ranking=ranking.slice(0,100);
+      saveRanking();
       this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,15));
       this.io.to(this.groupName).emit("singleClear",i);
       delete this.players[this.groupName];
