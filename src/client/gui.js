@@ -242,6 +242,21 @@ function decodeBytes(buffer, cb) {
 let gametime = 0;
 let initTime = -1;
 
+function drawScoreBoard(ranking){
+  const btngroup=document.getElementById("btn-group");
+  const numChildren=btngroup.children.length;
+  for (let i = 1; i < numChildren; i++) {
+    btngroup.removeChild(btngroup.children[btngroup.children.length-1]);
+  }
+
+  for (let i = 0; i < ranking.length; i++) {  
+    let newbutton=document.createElement('button');
+    btngroup.appendChild(newbutton);
+    newbutton.textContent="#"+(i+1) +"\t"+ranking[i].name+"\t"+ranking[i].time/10+"s";
+  }
+
+}
+
 function draw(id, _gametime, buffer, playerPos){
     myCanvas.width = window.innerWidth;
     myCanvas.height = window.innerHeight;
@@ -251,10 +266,17 @@ function draw(id, _gametime, buffer, playerPos){
     gametime = Math.floor(_gametime / 10);
     if (initTime < 0) initTime = gametime;
 
-    document.getElementById("clock1").textContent =
-      "Time:\t" + Math.floor(gametime / 3600) + "h\t" + gametime + "s";
-    document.getElementById("clock2").textContent =
+    if(window.user['gameType']=="FFA"){
+      let hours=Math.floor(gametime / 3600);
+      document.getElementById("clock1").textContent =
+      "Time:\t" + hours + "h\t" + (gametime-hours*3600) + "s";
+      document.getElementById("clock2").textContent =
       "My Age:\t" + (gametime - initTime) + "s";
+    }
+    if(window.user['gameType']=="SINGLE"){
+      document.getElementById("clock1").textContent =
+      "Time:\t" + _gametime/10 + "s";
+    }
 
     decodeBytes(buffer, window.cb);
 

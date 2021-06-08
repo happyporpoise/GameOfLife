@@ -4,7 +4,9 @@ const io = require('socket.io')(http);
 const port = process.env.PORT || 3000;
 const users={};
 
-const e = require('express');
+//const sqlite3 = require('sqlite3');
+//const db = new sqlite3.Database('./rankingBoard.db');
+
 const Game = require('./GameOfLife.js');
 const games = {"FFA" : new Game(io,"FFA",90*2,120*2)};
 
@@ -58,7 +60,7 @@ io.on('connection', (socket) => {
     if(userid in users){
       if(gametype=="FFA"){
         socket.join("FFA");
-        games['FFA'].addPlayer(users[userid]['socketid']);
+        games['FFA'].addPlayer(users[userid]['socketid'],users[userid]['name']);
         users[userid]["gamekey"]="FFA";
         console.log(Object.keys(games['FFA'].players));
         callback({
@@ -70,7 +72,7 @@ io.on('connection', (socket) => {
       if(gametype=="SINGLE"){
         socket.join(socket.id);
         games[socket.id]=new Game(io,socket.id,40,40);
-        games[socket.id].addPlayer(users[userid]['socketid']);
+        games[socket.id].addPlayer(users[userid]['socketid'],users[userid]['name']);
         users[userid]["gamekey"]=socket.id;
         console.log(Object.keys(games['FFA'].players));
         callback({
@@ -130,3 +132,4 @@ io.on('connection', (socket) => {
 http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
 });
+

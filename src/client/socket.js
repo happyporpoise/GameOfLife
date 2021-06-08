@@ -72,11 +72,15 @@ function gameSet(tag){
   socket.on('connect', () => {
     window.user = JSON.parse(window.localStorage.getItem('user'));
     window.user['socketid']=socket.id;
+    window.user['gameType']=tag;
 
     socket.emit("updateUser",window.user,
       (response)=>{
         if(!response){
           redirect("/");
+        }
+        if(tag=="SINGLE"){
+          socket.on("drawScoreBoard", drawScoreBoard);
         }
         socket.emit("gameSet", tag , window.user.id,
           (response) => {
@@ -89,8 +93,13 @@ function gameSet(tag){
             initState();
             startRendering();
             socket.on("dead", () => {
-              gameEnd()
+              gameEnd("dead")
             });
+            if(tag=="SINGLE"){
+              socket.on("singleClear", (i) => {
+                gameEnd("singleClear",i);
+              });
+            }
 
             window.addEventListener("keydown", sendEvent("keydown", window.user.id));
             window.addEventListener("keyup", sendEvent("keyup", window.user.id));
@@ -101,8 +110,17 @@ function gameSet(tag){
 }
 
 
-function gameEnd(){
+function gameEnd(tag,i){
   socket.close();
+  if(tag=="dead"){
+    document.getElementById("gameResult").textContent="DEAD!"
+  }
+  if(tag=="singleClear"){
+    document.getElementById("gameResult").textContent="CLEAR!"
+    const rankingButton=document.createElement("button");
+    rankingButton.textContent="RANKING #"+i
+    document.getElementById('btn-group2').appendChild(rankingButton);
+  }
   document.getElementById('btn-group2').style.visibility='visible';
               // if (confirm(`You're dead! Restart?`)) {
               //   redirect("/ffa");

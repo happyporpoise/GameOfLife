@@ -1,5 +1,7 @@
 "use strict";
 
+let ranking =[{"name":"hanSuh","time":1000}];
+
 function mod(n, m) {
   return ((n % m) + m) % m;
 }
@@ -10,7 +12,7 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = Math.random() > 0.5;
+    this.alive = Math.random() > 0.95;
   }
 }
 
@@ -18,9 +20,10 @@ class Player {
   static width = 10;
   static height = 10;
   static gliderCoolTime = 16; // number of generations
-  constructor(gridX, gridY) {
+  constructor(gridX, gridY,name) {
     this.gridX = gridX;
     this.gridY = gridY;
+    this.name=name;
     this.alive = true;
     this.movingUp = false;
     this.movingDown = false;
@@ -46,6 +49,8 @@ class Game {
     this.numColumns = numColumns;
     this.numRows = numRows;
     
+    this.mapSum = true;
+
     this.groupName=groupName;
     this.gametime = 0;
     this.io = _io;
@@ -137,6 +142,16 @@ class Game {
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
     }
+
+    if(this.groupName!="FFA"){
+      this.mapSum=false;
+      for (let i = 0; i < this.gameObjects.length; i++) {
+        if(this.gameObjects[i].alive){
+          this.mapSum=true;
+          return;
+        }
+      }
+    }
   }
 
   keyboardInput(id, eventcode, isPressed) {
@@ -177,6 +192,21 @@ class Game {
   }
 
   checkPlayerIsAlive() {
+    if(!this.mapSum && this.groupName in this.players){
+      let i;
+      for (i = 0; i < ranking.length; i++){
+        if(this.gametime<ranking[i].time){break;}
+      }
+      ranking.splice( i, 0, {
+        'name':this.players[this.groupName].name,
+        'time':this.gametime
+      } )
+      ranking=ranking.slice(0,100);
+      this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,15));
+      this.io.to(this.groupName).emit("singleClear",i);
+      delete this.players[this.groupName];
+    }
+
     Object.keys(this.players).forEach((socketid) => {
       if (
         this.players[socketid].alive &&
@@ -355,13 +385,16 @@ class Game {
     });
   }
 
-  addPlayer(socketid) {
+  addPlayer(socketid,name) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
     if (!randCell.alive) {
-      this.players[socketid] = new Player(randCell.gridX, randCell.gridY);
+      this.players[socketid] = new Player(randCell.gridX, randCell.gridY,name);
     } else {
-      this.addPlayer(socketid);
+      this.addPlayer(socketid,name);
+    }
+    if(this.groupName!="FFA"){
+      this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,5));
     }
   }
 
