@@ -14,6 +14,7 @@
     <input type="text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
     <button id="/ffa" onclick="redirect(this.id)">FFA</button>
     <button id="/single" onclick="redirect(this.id)">SINGLE</button>
+    <button id="howto" onclick="howto()">HOW TO PLAY</button>
   </div>
 
   <div class="button">
@@ -49,6 +50,27 @@
         document.getElementById("nameButton").click();
       }
     });
+
+    if(window.user.name!="" || window.user.name!=undefined){
+      document.getElementById("nameButton").textContent=window.user.name;
+    }
+
+    function howto(){
+      document.getElementById("howto").textContent="W,A,S,D --- Move\r\n";
+      document.getElementById("howto").textContent+="H,U,I,L --- Shoot a glider\r\n";
+      
+      document.getElementById("howto").textContent+="\r\n";
+      document.getElementById("howto").textContent+="Cracks\r\n";
+      document.getElementById("howto").textContent+="You're dead if you step on them\r\n";
+      document.getElementById("howto").textContent+="FFA -> Black pixels\r\n";
+      document.getElementById("howto").textContent+="SINGLE -> Bordered squares\r\n";
+
+      document.getElementById("howto").textContent+="\r\n";
+      document.getElementById("howto").textContent+="Game Goals\r\n";
+      document.getElementById("howto").textContent+="FFA -> Live long\r\n";
+      document.getElementById("howto").textContent+="SINGLE -> Remove the cracks\r\n";
+      document.getElementById("howto").textContent+="*no score board for FFA yet\r\n";
+    }
   </script>
 </body>
 

@@ -14,6 +14,10 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
 });
 
+app.get('/ranking.txt', (req, res) => {
+  res.sendFile(__dirname + '/ranking.txt');
+});
+
 app.get('/ffa', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/ffa.html');
 });
@@ -62,7 +66,6 @@ io.on('connection', (socket) => {
         socket.join("FFA");
         games['FFA'].addPlayer(users[userid]['socketid'],users[userid]['name']);
         users[userid]["gamekey"]="FFA";
-        console.log(Object.keys(games['FFA'].players));
         callback({
           id:userid,
           numColumns: games['FFA'].numColumns,
@@ -74,7 +77,6 @@ io.on('connection', (socket) => {
         games[socket.id]=new Game(io,socket.id,50,50);
         games[socket.id].addPlayer(users[userid]['socketid'],users[userid]['name']);
         users[userid]["gamekey"]=socket.id;
-        console.log(Object.keys(games['FFA'].players));
         callback({
           id:userid,
           numColumns: games[socket.id].numColumns,
@@ -108,8 +110,8 @@ io.on('connection', (socket) => {
 
   socket.on("updateUser", (user,callback) => {
     if("id" in user && user['id'] in users){
-      user.socketid=socket.id;
-      user.timeOut=false;
+      user['socketid']=socket.id;
+      user['timeOut']=false;
       Object.keys(user).forEach(
         (key)=>{users[user['id']][key]=user[key];}
       );
@@ -133,8 +135,8 @@ http.listen(port, () => {
   console.log(`Socket.IO server running at http://localhost:${port}/`);
 });
 
-
-const timeOut=setInterval(()=>{
+setInterval(()=>{
+  console.log(Object.keys(games['FFA'].players));
   Object.keys(users).forEach((userid)=>{
     const socketid=users[userid].socketid;
     if(socketid in games['FFA'].players || socketid in games){
@@ -150,4 +152,4 @@ const timeOut=setInterval(()=>{
       }
     }
   })
-}, 1000 * 60 * 5 );
+}, 1000 * 60 * 10 );

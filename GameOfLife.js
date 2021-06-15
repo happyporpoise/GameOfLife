@@ -4,16 +4,42 @@ const fs = require('fs');
 let ranking =JSON.parse(fs.readFileSync('ranking.txt',{encoding:'utf8', flag:'r'},(err,data)=>{
   if (err) return console.log(err);}));
 
-function saveRanking(){
-  fs.writeFile('ranking.txt', JSON.stringify(ranking), function (err) {
+function saveRanking(filename){
+  fs.writeFile(filename, JSON.stringify(ranking), function (err) {
     if (err) return console.log(err);
-    console.log("ranking.txt saved");
+    console.log(filename+" saved");
     console.log(JSON.stringify(ranking));
   });
 }
 
+
 function mod(n, m) {
   return ((n % m) + m) % m;
+}
+
+
+const keyboardMsgs=[
+  "movingDown",
+  "movingDown",
+  "movingUp",
+  "movingUp",
+  "movingLeft",
+  "movingLeft",
+  "movingRight",
+  "movingRight",
+  "pressedNE",
+  "pressedNE",
+  "pressedNW",
+  "pressedNW",
+  "pressedSW",
+  "pressedSW",
+  "pressedSE",
+  "pressedSE"
+]
+
+function randomChoice(li){
+  const ind=Math.floor(Math.random() * li.length);
+  return li[ind];
 }
 
 class Cell {
@@ -66,6 +92,8 @@ class Game {
     this.io = _io;
     this.sockets = {};
     this.players = {};
+    this.towerids = ['tower1','tower2','tower3','tower4','tower5','tower6','tower7','tower8'];
+
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
 
@@ -84,6 +112,7 @@ class Game {
     this.gametime++;
     // io.emit('chat message', "This is a useless message :)");
     this.checkSurrounding();
+    if(this.groupName=="FFA"){this.towerUpdate();}
     this.playerMovement();
     this.gliderUpdate();
     this.updateCoolTime();
@@ -212,7 +241,7 @@ class Game {
         'time':this.gametime
       } )
       ranking=ranking.slice(0,100);
-      saveRanking();
+      saveRanking('ranking.txt');
       this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,15));
       this.io.to(this.groupName).emit("singleClear",i);
       delete this.players[this.groupName];
@@ -223,7 +252,9 @@ class Game {
         this.players[socketid].alive &&
         this.isAlive(this.players[socketid].gridX, this.players[socketid].gridY) === 1
       ) {
-        this.io.to(socketid).emit("dead");
+        if(!(socketid in this.towerids)){
+          this.io.to(socketid).emit("dead");
+        }
         delete this.players[socketid];
       }
     });
@@ -247,6 +278,15 @@ class Game {
           this.players[id].gliderCoolTimeLeft = Player.gliderCoolTime;
         }
       }
+    });
+  }
+
+  towerUpdate(){
+    this.towerids.forEach((id)=>{
+      if(!(id in this.players)){
+        this.addPlayer(id,id);
+      }
+      this.keyboardInput(id,randomChoice(keyboardMsgs),(Math.random()>0.5));
     });
   }
 

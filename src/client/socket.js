@@ -5,11 +5,15 @@ socket.on('timeOut',()=>{
   redirect("/");
 });
 
-window.user={
-  'id':undefined,
-  'name':'Anonymous',
-  'socketid':socket.id
-};
+window.user = JSON.parse(window.localStorage.getItem('user'));
+
+if (window.user === null) {
+  window.user={
+    'id':undefined,
+    'name':'',
+    'socketid':socket.id
+  };
+}
 
 keyboarddMap={
   "KeyS"      : "movingDown",
@@ -54,7 +58,7 @@ function redirect(tag){
 
 function setUser(){
   let username=document.getElementById("usernameInput").value;
-  if(username==""){username="Anonymous-"+socket.id.slice(16)};
+  if(username==""){username=socket.id.slice(0,6)};
 
   if(username==window.user.name && window.user.id !=undefined){
     return;
@@ -76,7 +80,6 @@ function setUser(){
 function gameSet(tag){
   // Somewhere else
   socket.on('connect', () => {
-    window.user = JSON.parse(window.localStorage.getItem('user'));
     window.user['socketid']=socket.id;
     window.user['gameType']=tag;
 

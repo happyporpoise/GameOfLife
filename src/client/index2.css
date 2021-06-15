@@ -107,6 +107,7 @@ body {
     cursor: pointer; /* Pointer/hand icon */
     width: 100%; /* Set a width if needed */
     display: block; /* Make the buttons appear below each other */
+    white-space: pre-line;
   }
 
   .btn-group2 button:not(:last-child) {
