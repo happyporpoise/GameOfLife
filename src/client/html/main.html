@@ -10,16 +10,19 @@
   <ul id="messages"></ul>
 
   <div class="btn-group2">
-    <button id="nameButton" onclick="setUser()">GGL</button>
+    <!-- <button id="/ffa" onclick="redirect(this.id)">FFA</button>
+    <button id="/single" onclick="redirect(this.id)">SINGLE</button> -->
+    <button id="/ffa" onclick="setGameMode(this.id)">FFA</button>
+    <button id="/single" onclick="setGameMode(this.id)">SINGLE</button>
     <input type="text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
-    <button id="/ffa" onclick="redirect(this.id)">FFA</button>
-    <button id="/single" onclick="redirect(this.id)">SINGLE</button>
+    <!-- <button id="nameButton" onclick="setUser()">GGL</button> -->
+    <button id="nameButton" onclick="setUserAndStart()">GGL</button>
     <button id="howto" onclick="howto()">HOW TO PLAY</button>
   </div>
 
   <div class="button">
   </div>
-  
+
 
   <canvas id="myCanvas" style="border:1px solid lightgrey;">
     Your browser does not support the HTML5 canvas tag.
@@ -30,8 +33,8 @@
   <script src="/src/client/state.js"></script>
   <script src="/src/client/gui.js"></script>
   <script src="/src/client/socket.js"></script>
-  
-  
+
+
   <script>
     //gameSet("FFA");
     document.body.scrollTop = 0;
@@ -41,9 +44,9 @@
     const input = document.getElementById("usernameInput");
 
     // Execute a function when the user releases a key on the keyboard
-    input.addEventListener("keyup", function(event) {
+    input.addEventListener("keyup", function (event) {
       // Number 13 is the "Enter" key on the keyboard
-      if (event.keyCode === 13) {
+      if (event.key === "Enter") {
         // Cancel the default action, if needed
         event.preventDefault();
         // Trigger the button element with a click
@@ -51,25 +54,47 @@
       }
     });
 
-    if(window.user.name!="" || window.user.name!=undefined){
-      document.getElementById("nameButton").textContent=window.user.name;
+    if (window.user.name != "" || window.user.name != undefined) {
+      document.getElementById("nameButton").textContent = window.user.name;
     }
 
-    function howto(){
-      document.getElementById("howto").textContent="W,A,S,D --- Move\r\n";
-      document.getElementById("howto").textContent+="H,U,I,L --- Shoot a glider\r\n";
-      
-      document.getElementById("howto").textContent+="\r\n";
-      document.getElementById("howto").textContent+="Cracks\r\n";
-      document.getElementById("howto").textContent+="You're dead if you step on them\r\n";
-      document.getElementById("howto").textContent+="FFA -> Black pixels\r\n";
-      document.getElementById("howto").textContent+="SINGLE -> Bordered squares\r\n";
+    function howto() {
+      document.getElementById("howto").textContent = "W,A,S,D --- Move\r\n";
+      document.getElementById("howto").textContent += "H,U,I,L --- Shoot a glider\r\n";
 
-      document.getElementById("howto").textContent+="\r\n";
-      document.getElementById("howto").textContent+="Game Goals\r\n";
-      document.getElementById("howto").textContent+="FFA -> Live long\r\n";
-      document.getElementById("howto").textContent+="SINGLE -> Remove the cracks\r\n";
-      document.getElementById("howto").textContent+="*no score board for FFA yet\r\n";
+      document.getElementById("howto").textContent += "\r\n";
+      document.getElementById("howto").textContent += "Cracks\r\n";
+      document.getElementById("howto").textContent += "You're dead if you step on them\r\n";
+      document.getElementById("howto").textContent += "FFA -> Black pixels\r\n";
+      document.getElementById("howto").textContent += "SINGLE -> Bordered squares\r\n";
+
+      document.getElementById("howto").textContent += "\r\n";
+      document.getElementById("howto").textContent += "Game Goals\r\n";
+      document.getElementById("howto").textContent += "FFA -> Live long\r\n";
+      document.getElementById("howto").textContent += "SINGLE -> Remove the cracks\r\n";
+      document.getElementById("howto").textContent += "*no score board for FFA yet\r\n";
+    }
+
+    let gameMode = "/ffa";
+    document.getElementById("/ffa").style.backgroundColor = "#0099cc";
+    document.getElementById("/single").style.backgroundColor = "#333";
+
+    function setGameMode(tag) {
+      gameMode = tag;
+      if (gameMode == "/ffa") {
+        document.getElementById("/ffa").style.backgroundColor = "#0099cc";
+        document.getElementById("/single").style.backgroundColor = "#333";
+      } else if (gameMode == "/single") {
+        document.getElementById("/ffa").style.backgroundColor = "#333";
+        document.getElementById("/single").style.backgroundColor = "#0099cc";
+      }
+    }
+
+    function setUserAndStart() {
+      (function(callback){
+        setUser();
+        callback();
+      })(function(){redirect(gameMode);});
     }
   </script>
 </body>
