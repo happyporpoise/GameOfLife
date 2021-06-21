@@ -239,8 +239,7 @@ function decodeBytes(buffer, cb) {
   }
 }
 
-let gametime = 0;
-let initTime = -1;
+let initTime = 0;
 
 function drawScoreBoard(ranking){
   const btngroup=document.getElementById("btn-group");
@@ -252,7 +251,7 @@ function drawScoreBoard(ranking){
   for (let i = 0; i < ranking.length; i++) {  
     let newbutton=document.createElement('button');
     btngroup.appendChild(newbutton);
-    newbutton.textContent="#"+(i+1) +"\t"+ranking[i].name+"\t"+ranking[i].time/10+"s";
+    newbutton.textContent="#"+(i+1) +"\t"+ranking[i].name+"\t"+(ranking[i].time/10).toFixed(1)+"s";
   }
 
 }
@@ -263,20 +262,11 @@ function draw(id, _gametime, buffer, playerPos){
     myContext.fillStyle = "#000000";
     myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
 
-    gametime = Math.floor(_gametime / 10);
-    if (initTime < 0) initTime = gametime;
+    if (initTime == 0) initTime = _gametime;
 
-    if(window.user['gameType']=="FFA"){
-      let hours=Math.floor(gametime / 3600);
-      document.getElementById("clock1").textContent =
-      "Time:\t" + hours + "h\t" + (gametime-hours*3600) + "s";
-      document.getElementById("clock2").textContent =
-      "My Age:\t" + (gametime - initTime) + "s";
-    }
-    if(window.user['gameType']=="SINGLE"){
-      document.getElementById("clock1").textContent =
-      "Time:\t" + _gametime/10 + "s";
-    }
+    
+    document.getElementById("clock1").textContent =
+      "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
 
     decodeBytes(buffer, window.cb);
 

@@ -12,6 +12,7 @@ function saveRanking(filename){
   });
 }
 
+let ffaRanking=[];
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -75,6 +76,8 @@ class Player {
     this.shootSW = false;
     this.shootSE = false;
     this.gliderCoolTimeLeft = 0;
+    this.initTime = 0;
+    this.age = 0;
   }
 }
 
@@ -124,6 +127,10 @@ class Game {
       buffer: this.buffer,
       playerPos: this.getPlayerPos(),
     });
+    if(this.groupName=='FFA'){
+      this.rankingUpdate();
+      this.io.to(this.groupName).emit("drawScoreBoard", ffaRanking);
+    }
     this.checkPlayerIsAlive();
   }
 
@@ -290,6 +297,17 @@ class Game {
     });
   }
 
+  rankingUpdate(){
+    ffaRanking=[];
+    Object.keys(this.players).forEach((id) =>{
+      this.players[id].age=this.gametime-this.players[id].initTime;
+      ffaRanking.push({
+        'name' : this.players[id].name,
+        'time' : this.players[id].age
+      });
+    });
+  }
+
   gliderUpdate() {
     Object.keys(this.players).forEach((id) => {
       if (!this.players[id].alive) {
@@ -441,6 +459,7 @@ class Game {
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
     if (!randCell.alive) {
       this.players[socketid] = new Player(randCell.gridX, randCell.gridY,name);
+      this.players[socketid].initTime=this.gametime;
     } else {
       this.addPlayer(socketid,name);
     }

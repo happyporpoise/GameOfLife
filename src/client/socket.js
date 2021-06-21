@@ -88,9 +88,9 @@ function gameSet(tag){
         if(!response){
           redirect("/");
         }
-        if(tag=="SINGLE"){
-          socket.on("drawScoreBoard", drawScoreBoard);
-        }
+        
+        socket.on("drawScoreBoard", drawScoreBoard);
+        
         socket.emit("gameSet", tag , window.user.id,
           (response) => {
             
