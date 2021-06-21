@@ -16,7 +16,7 @@
     <button id="/single" onclick="setGameMode(this.id)">SINGLE</button>
     <input type="text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
     <!-- <button id="nameButton" onclick="setUser()">GGL</button> -->
-    <button id="nameButton" onclick="setUserAndStart()">GGL</button>
+    <button id="nameButton" onclick="setUser(() => {redirect(gameMode);})">GGL</button>
     <button id="howto" onclick="howto()">HOW TO PLAY</button>
   </div>
 
@@ -90,28 +90,6 @@
       }
     }
 
-    // function setUserAndStart() {
-    //   (function(callback){
-    //     setUser();
-    //     callback();
-    //   })(function(){redirect(gameMode);});
-    // }
-
-    // function setUserAndStart() {
-    //   (function (callback) {
-    //     return new Promise(function (resolve, reject) {
-    //       (function() {
-    //         setUser();
-    //         resolve();
-    //       })();
-    //     })
-    //   })().then(function () { redirect(gameMode); });
-    // }
-
-    function setUserAndStart() {
-      setUser();
-      setTimeout(function () { redirect(gameMode); }, 1000);
-    }
   </script>
 </body>
 

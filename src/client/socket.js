@@ -56,7 +56,7 @@ function redirect(tag){
   window.location.href=window.location.origin+tag;
 }
 
-function setUser(){
+function setUser(callback){
   let username=document.getElementById("usernameInput").value;
   if(username==""){username=socket.id.slice(0,6)};
 
@@ -70,6 +70,7 @@ function setUser(){
         window.user=response;
         document.getElementById("nameButton").textContent=response.name;
         document.getElementById("usernameInput").value="";
+        callback();
       }
       else{
         alert(`Username ${username} already exists`);
