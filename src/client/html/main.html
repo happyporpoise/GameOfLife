@@ -10,15 +10,19 @@
   <ul id="messages"></ul>
 
   <div class="btn-group2">
-    <button id="nameButton" onclick="setUser()">Anonymous</button>
-    <input type="text" id="usernameInput" name="username">
-    <button id="/ffa" onclick="redirect(this.id)">FFA</button>
-    <button id="/single" onclick="redirect(this.id)">SINGLE</button>
+    <!-- <button id="/ffa" onclick="redirect(this.id)">FFA</button>
+    <button id="/single" onclick="redirect(this.id)">SINGLE</button> -->
+    <button id="/ffa" onclick="setGameMode(this.id)">FFA</button>
+    <button id="/single" onclick="setGameMode(this.id)">SINGLE</button>
+    <input type="text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
+    <!-- <button id="nameButton" onclick="setUser()">GGL</button> -->
+    <button id="nameButton" onclick="setUserAndStart()">GGL</button>
+    <button id="howto" onclick="howto()">HOW TO PLAY</button>
   </div>
 
   <div class="button">
   </div>
-  
+
 
   <canvas id="myCanvas" style="border:1px solid lightgrey;">
     Your browser does not support the HTML5 canvas tag.
@@ -29,8 +33,8 @@
   <script src="/src/client/state.js"></script>
   <script src="/src/client/gui.js"></script>
   <script src="/src/client/socket.js"></script>
-  
-  
+
+
   <script>
     //gameSet("FFA");
     document.body.scrollTop = 0;

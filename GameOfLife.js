@@ -1,7 +1,45 @@
 "use strict";
 
+const fs = require('fs');
+let ranking =JSON.parse(fs.readFileSync('ranking.txt',{encoding:'utf8', flag:'r'},(err,data)=>{
+  if (err) return console.log(err);}));
+
+function saveRanking(filename){
+  fs.writeFile(filename, JSON.stringify(ranking), function (err) {
+    if (err) return console.log(err);
+    console.log(filename+" saved");
+    console.log(JSON.stringify(ranking));
+  });
+}
+
+
 function mod(n, m) {
   return ((n % m) + m) % m;
+}
+
+
+const keyboardMsgs=[
+  "movingDown",
+  "movingDown",
+  "movingUp",
+  "movingUp",
+  "movingLeft",
+  "movingLeft",
+  "movingRight",
+  "movingRight",
+  "pressedNE",
+  "pressedNE",
+  "pressedNW",
+  "pressedNW",
+  "pressedSW",
+  "pressedSW",
+  "pressedSE",
+  "pressedSE"
+]
+
+function randomChoice(li){
+  const ind=Math.floor(Math.random() * li.length);
+  return li[ind];
 }
 
 class Cell {
@@ -10,7 +48,7 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = Math.random() > 0.5;
+    this.alive = Math.random() > 0.9;
   }
 }
 
@@ -18,9 +56,10 @@ class Player {
   static width = 10;
   static height = 10;
   static gliderCoolTime = 16; // number of generations
-  constructor(gridX, gridY) {
+  constructor(gridX, gridY,name) {
     this.gridX = gridX;
     this.gridY = gridY;
+    this.name=name;
     this.alive = true;
     this.movingUp = false;
     this.movingDown = false;
@@ -40,13 +79,21 @@ class Player {
 }
 
 class Game {
-  static numColumns = 120;
-  static numRows = 90;
-  constructor(_io) {
+
+  constructor(_io,groupName,numColumns,numRows) {
+
+    this.numColumns = numColumns;
+    this.numRows = numRows;
+    
+    this.mapSum = true;
+
+    this.groupName=groupName;
     this.gametime = 0;
     this.io = _io;
     this.sockets = {};
     this.players = {};
+    this.towerids = ['tower1','tower2','tower3','tower4','tower5','tower6','tower7','tower8'];
+
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
 
@@ -54,7 +101,7 @@ class Game {
     this.createGrid();
 
     this.buffer = new ArrayBuffer(
-      -Math.floor((-Game.numColumns * Game.numRows) / 32) * 4
+      -Math.floor((-this.numColumns * this.numRows) / 32) * 4
     );
     this.bufferView = new Uint32Array(this.buffer);
 
@@ -65,12 +112,13 @@ class Game {
     this.gametime++;
     // io.emit('chat message', "This is a useless message :)");
     this.checkSurrounding();
+    if(this.groupName=="FFA"){this.towerUpdate();}
     this.playerMovement();
     this.gliderUpdate();
     this.updateCoolTime();
     this.encodeBytes();
     // this.io.emit('draw',this.gametime, this.buffer,this.getPlayerPos());
-    this.io.emit("gameUpdate", {
+    this.io.to(this.groupName).emit("gameUpdate", {
       t: Date.now(),
       gametime: this.gametime,
       buffer: this.buffer,
@@ -80,8 +128,8 @@ class Game {
   }
 
   createGrid() {
-    for (let y = 0; y < Game.numRows; y++) {
-      for (let x = 0; x < Game.numColumns; x++) {
+    for (let y = 0; y < this.numRows; y++) {
+      for (let x = 0; x < this.numColumns; x++) {
         this.gameObjects.push(new Cell(x, y));
       }
     }
@@ -89,20 +137,20 @@ class Game {
 
   isAlive(x, y) {
     return this.gameObjects[
-      this.gridToIndex(mod(x, Game.numColumns), mod(y, Game.numRows))
+      this.gridToIndex(mod(x, this.numColumns), mod(y, this.numRows))
     ].alive
       ? 1
       : 0;
   }
 
   gridToIndex(x, y) {
-    return x + y * Game.numColumns;
+    return x + y * this.numColumns;
   }
 
   checkSurrounding() {
     // Loop over all cells
-    for (let x = 0; x < Game.numColumns; x++) {
-      for (let y = 0; y < Game.numRows; y++) {
+    for (let x = 0; x < this.numColumns; x++) {
+      for (let y = 0; y < this.numRows; y++) {
         // Count the nearby population
         let numAlive =
           this.isAlive(x - 1, y - 1) +
@@ -133,6 +181,16 @@ class Game {
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
     }
+
+    if(this.groupName!="FFA"){
+      this.mapSum=false;
+      for (let i = 0; i < this.gameObjects.length; i++) {
+        if(this.gameObjects[i].alive){
+          this.mapSum=true;
+          return;
+        }
+      }
+    }
   }
 
   keyboardInput(id, eventcode, isPressed) {
@@ -152,33 +210,51 @@ class Game {
         return;
       }
       if (this.players[id].movingDown) {
-        this.players[id].gridY = mod(this.players[id].gridY + 1, Game.numRows);
+        this.players[id].gridY = mod(this.players[id].gridY + 1, this.numRows);
       }
       if (this.players[id].movingUp) {
-        this.players[id].gridY = mod(this.players[id].gridY - 1, Game.numRows);
+        this.players[id].gridY = mod(this.players[id].gridY - 1, this.numRows);
       }
       if (this.players[id].movingLeft) {
         this.players[id].gridX = mod(
           this.players[id].gridX - 1,
-          Game.numColumns
+          this.numColumns
         );
       }
       if (this.players[id].movingRight) {
         this.players[id].gridX = mod(
           this.players[id].gridX + 1,
-          Game.numColumns
+          this.numColumns
         );
       }
     });
   }
 
   checkPlayerIsAlive() {
+    if(!this.mapSum && this.groupName in this.players){
+      let i;
+      for (i = 0; i < ranking.length; i++){
+        if(this.gametime<ranking[i].time){break;}
+      }
+      ranking.splice( i, 0, {
+        'name':this.players[this.groupName].name,
+        'time':this.gametime
+      } )
+      ranking=ranking.slice(0,100);
+      saveRanking('ranking.txt');
+      this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,15));
+      this.io.to(this.groupName).emit("singleClear",i);
+      delete this.players[this.groupName];
+    }
+
     Object.keys(this.players).forEach((socketid) => {
       if (
         this.players[socketid].alive &&
         this.isAlive(this.players[socketid].gridX, this.players[socketid].gridY) === 1
       ) {
-        this.io.to(socketid).emit("dead");
+        if(!(socketid in this.towerids)){
+          this.io.to(socketid).emit("dead");
+        }
         delete this.players[socketid];
       }
     });
@@ -205,6 +281,15 @@ class Game {
     });
   }
 
+  towerUpdate(){
+    this.towerids.forEach((id)=>{
+      if(!(id in this.players)){
+        this.addPlayer(id,id);
+      }
+      this.keyboardInput(id,randomChoice(keyboardMsgs),(Math.random()>0.5));
+    });
+  }
+
   gliderUpdate() {
     Object.keys(this.players).forEach((id) => {
       if (!this.players[id].alive) {
@@ -215,128 +300,128 @@ class Game {
         this.players[id].shootNE = false;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 1, Game.numColumns),
-            mod(this.players[id].gridY - 2, Game.numRows)
+            mod(this.players[id].gridX + 1, this.numColumns),
+            mod(this.players[id].gridY - 2, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 2, Game.numColumns),
-            mod(this.players[id].gridY - 3, Game.numRows)
+            mod(this.players[id].gridX + 2, this.numColumns),
+            mod(this.players[id].gridY - 3, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 3, Game.numColumns),
-            mod(this.players[id].gridY - 1, Game.numRows)
+            mod(this.players[id].gridX + 3, this.numColumns),
+            mod(this.players[id].gridY - 1, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 3, Game.numColumns),
-            mod(this.players[id].gridY - 2, Game.numRows)
+            mod(this.players[id].gridX + 3, this.numColumns),
+            mod(this.players[id].gridY - 2, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 3, Game.numColumns),
-            mod(this.players[id].gridY - 3, Game.numRows)
+            mod(this.players[id].gridX + 3, this.numColumns),
+            mod(this.players[id].gridY - 3, this.numRows)
           )
         ].alive = true;
       } else if (this.players[id].shootNW) {
         this.players[id].shootNW = false;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 1, Game.numColumns),
-            mod(this.players[id].gridY - 3, Game.numRows)
+            mod(this.players[id].gridX - 1, this.numColumns),
+            mod(this.players[id].gridY - 3, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 2, Game.numColumns),
-            mod(this.players[id].gridY - 1, Game.numRows)
+            mod(this.players[id].gridX - 2, this.numColumns),
+            mod(this.players[id].gridY - 1, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 2, Game.numColumns),
-            mod(this.players[id].gridY - 3, Game.numRows)
+            mod(this.players[id].gridX - 2, this.numColumns),
+            mod(this.players[id].gridY - 3, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 3, Game.numColumns),
-            mod(this.players[id].gridY - 2, Game.numRows)
+            mod(this.players[id].gridX - 3, this.numColumns),
+            mod(this.players[id].gridY - 2, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 3, Game.numColumns),
-            mod(this.players[id].gridY - 3, Game.numRows)
+            mod(this.players[id].gridX - 3, this.numColumns),
+            mod(this.players[id].gridY - 3, this.numRows)
           )
         ].alive = true;
       } else if (this.players[id].shootSW) {
         this.players[id].shootSW = false;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 1, Game.numColumns),
-            mod(this.players[id].gridY + 2, Game.numRows)
+            mod(this.players[id].gridX - 1, this.numColumns),
+            mod(this.players[id].gridY + 2, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 2, Game.numColumns),
-            mod(this.players[id].gridY + 3, Game.numRows)
+            mod(this.players[id].gridX - 2, this.numColumns),
+            mod(this.players[id].gridY + 3, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 3, Game.numColumns),
-            mod(this.players[id].gridY + 1, Game.numRows)
+            mod(this.players[id].gridX - 3, this.numColumns),
+            mod(this.players[id].gridY + 1, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 3, Game.numColumns),
-            mod(this.players[id].gridY + 2, Game.numRows)
+            mod(this.players[id].gridX - 3, this.numColumns),
+            mod(this.players[id].gridY + 2, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX - 3, Game.numColumns),
-            mod(this.players[id].gridY + 3, Game.numRows)
+            mod(this.players[id].gridX - 3, this.numColumns),
+            mod(this.players[id].gridY + 3, this.numRows)
           )
         ].alive = true;
       } else if (this.players[id].shootSE) {
         this.players[id].shootSE = false;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 1, Game.numColumns),
-            mod(this.players[id].gridY + 3, Game.numRows)
+            mod(this.players[id].gridX + 1, this.numColumns),
+            mod(this.players[id].gridY + 3, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 2, Game.numColumns),
-            mod(this.players[id].gridY + 1, Game.numRows)
+            mod(this.players[id].gridX + 2, this.numColumns),
+            mod(this.players[id].gridY + 1, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 2, Game.numColumns),
-            mod(this.players[id].gridY + 3, Game.numRows)
+            mod(this.players[id].gridX + 2, this.numColumns),
+            mod(this.players[id].gridY + 3, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 3, Game.numColumns),
-            mod(this.players[id].gridY + 2, Game.numRows)
+            mod(this.players[id].gridX + 3, this.numColumns),
+            mod(this.players[id].gridY + 2, this.numRows)
           )
         ].alive = true;
         this.gameObjects[
           this.gridToIndex(
-            mod(this.players[id].gridX + 3, Game.numColumns),
-            mod(this.players[id].gridY + 3, Game.numRows)
+            mod(this.players[id].gridX + 3, this.numColumns),
+            mod(this.players[id].gridY + 3, this.numRows)
           )
         ].alive = true;
       }
@@ -351,13 +436,16 @@ class Game {
     });
   }
 
-  addPlayer(socketid) {
+  addPlayer(socketid,name) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
     if (!randCell.alive) {
-      this.players[socketid] = new Player(randCell.gridX, randCell.gridY);
+      this.players[socketid] = new Player(randCell.gridX, randCell.gridY,name);
     } else {
-      this.addPlayer(socketid);
+      this.addPlayer(socketid,name);
+    }
+    if(this.groupName!="FFA"){
+      this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,5));
     }
   }
 

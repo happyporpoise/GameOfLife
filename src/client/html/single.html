@@ -9,30 +9,37 @@
 <body>
   <ul id="messages"></ul>
 
-  <div class="btn-group">
-    <button id="PLAIN" onclick="setupVar(cb)(this.id)">PLAIN</button>
+  <div class="btn-group" id="btn-group">
+    <button id="clock1">Time:0s</button>
+    <!--<button id="PLAIN" onclick="setupVar(cb)(this.id)">PLAIN</button>
     <button id="PLAIN-NUT" onclick="setupVar(cb)(this.id)">PLAIN-NUT</button>
     <button id="SPACEDECAY:TACHYON" onclick="setupVar(cb)(this.id)">SPACEDECAY:TACHYON</button>
     <button id="SPACEDECAY:TERRAIN" onclick="setupVar(cb)(this.id)">SPACEDECAY:TERRAIN</button>
-    <button id="NONE" onclick="setupVar(this.id)">NONE</button>
+    <button id="NONE" onclick="setupVar(this.id)">NONE</button>-->
+  </div>  
+
+  <div class="btn-group2" id="btn-group2">
+    <button id="gameResult"></button>
+    <button id="/" onclick="redirect(this.id)">HOME</button>
+    <button id="/single" onclick="redirect(this.id)">RESTART</button>
   </div>
 
-  <div class="button">
-  </div>
-  
   <canvas id="myCanvas" style="border:1px solid lightgrey;">
     Your browser does not support the HTML5 canvas tag.
   </canvas>
- 
+
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/client/download.js"></script>
+  <script src="/src/client/state.js"></script>
   <script src="/src/client/gui.js"></script>
   <script src="/src/client/socket.js"></script>
-
+  
   <script>
+    GUI_MODE="PLAIN";
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
-  //gameSet("FFA");
+    document.getElementById('btn-group2').style.visibility='hidden';
+    gameSet("SINGLE");
   </script>
 </body>
 
