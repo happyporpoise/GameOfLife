@@ -8,8 +8,8 @@ let xcenter = myCanvas.width / 2;
 let ycenter = myCanvas.height / 2;
 
 //let GUI_MODE="PLAIN";
-//let GUI_MODE="PLAIN-NUT";
-let GUI_MODE = "SPACEDECAY";
+let GUI_MODE="PLAIN-NUT";
+//let GUI_MODE = "SPACEDECAY";
 //let GUI_MODE="NONE";
 
 //const CanvasColumns = -Math.floor(-myCanvas.width);

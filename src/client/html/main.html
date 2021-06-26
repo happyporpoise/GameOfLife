@@ -3,21 +3,105 @@
 
 <head>
   <title>GameoftheGameofLife</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="/src/client/index2.css">
+  <style>
+    .row>div {
+      padding: 20px;
+      background-color: none;
+      border: none;
+    }
+
+    .container-fluid {
+      min-height: 100% !important;
+      padding: 20px 20px 20px 30px;
+    }
+
+    html,
+    body {
+      height: 100%;
+      overflow: scroll;
+      overflow-x: hidden;
+    }
+
+    ::-webkit-scrollbar {
+      width: 0;
+      /* Remove scrollbar space */
+      background: transparent;
+      /* Optional: just make scrollbar invisible */
+    }
+
+    .center {
+      text-align: center;
+      margin: auto;
+    }
+  </style>
 </head>
 
 <body>
   <ul id="messages"></ul>
-
-  <div class="btn-group2">
-    <!-- <button id="/ffa" onclick="redirect(this.id)">FFA</button>
-    <button id="/single" onclick="redirect(this.id)">SINGLE</button> -->
-    <button id="/ffa" onclick="setGameMode(this.id)">FFA</button>
-    <button id="/single" onclick="setGameMode(this.id)">SINGLE</button>
-    <input type="text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
-    <!-- <button id="nameButton" onclick="setUser()">GGL</button> -->
-    <button id="nameButton" onclick="setUser(() => {redirect(gameMode);})">GGL</button>
-    <button id="howto" onclick="howto()">HOW TO PLAY</button>
+  <div class="container-fluid" style="border: none;">
+    <div class="row">
+      <div class="col">
+        <div class="center">
+          <h1>
+            The Game of Game of Life
+          </h1>
+          <h5>
+            Based on <em>Conway's Game of Life</em>
+          </h5>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="center">
+          Game mode<br>
+          <div class="btn-group" role="group" aria-label="Basic example">
+            <button type="button" class="btn btn-dark" id="/ffa"
+              onclick="setGameMode(this.id)">&nbsp;&nbsp;&nbsp;FFA&nbsp;&nbsp;</button>
+            <button type="button" class="btn btn-dark" id="/single" onclick="setGameMode(this.id)">SINGLE</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="center">
+          This is the tale of...<br>
+          <input type="text" class="form-text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
+          <br>
+          (press enter to spawn)<br>
+          <button id="nameButton" onclick="setUser(() => {redirect(gameMode);})"
+            style="color: transparent; background-color: transparent; border-color: transparent; cursor: default; outline: 0; font-size: 0px;">GGL</button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <div class="col">
+        <div class="center">
+          <button type="button" class="btn btn-light btn-sm" id="howto" onclick="howto()">How to play</button>
+          <div id="HowToPlay" style="display: none;">
+            <p>
+            <h6>Basic movements</h6>
+            Move with W,A,S,D<br>
+            Shoot gliders with Y,I,H,K<br>
+            <br>
+            <h6>FFA (free-for-all) mode</h6>
+            You die if you step on a black cell. <br>
+            Stay alive as long as possible<br>
+            while attacking others with gliders!<br>
+            <br>
+            <h6>SINGLE (single-player) mode</h6>
+            Bordered squares are called <em>cracks</em>. <br>
+            The goal is to remove all the cracks!<br>
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
   </div>
 
   <div class="button">
@@ -37,8 +121,8 @@
 
   <script>
     //gameSet("FFA");
-    document.body.scrollTop = 0;
-    document.body.style.overflow = 'hidden';
+    // document.body.scrollTop = 0;
+    // document.body.style.overflow = 'hidden';
 
     // Get the input field
     const input = document.getElementById("usernameInput");
@@ -59,20 +143,28 @@
     }
 
     function howto() {
-      document.getElementById("howto").textContent = "W,A,S,D --- Move\r\n";
-      document.getElementById("howto").textContent += "H,U,I,L --- Shoot a glider\r\n";
+      // document.getElementById("howto").textContent = "W,A,S,D --- Move\r\n";
+      // document.getElementById("howto").textContent += "H,U,I,L --- Shoot a glider\r\n";
 
-      document.getElementById("howto").textContent += "\r\n";
-      document.getElementById("howto").textContent += "Cracks\r\n";
-      document.getElementById("howto").textContent += "You're dead if you step on them\r\n";
-      document.getElementById("howto").textContent += "FFA -> Black pixels\r\n";
-      document.getElementById("howto").textContent += "SINGLE -> Bordered squares\r\n";
+      // document.getElementById("howto").textContent += "\r\n";
+      // document.getElementById("howto").textContent += "Cracks\r\n";
+      // document.getElementById("howto").textContent += "You're dead if you step on them\r\n";
+      // document.getElementById("howto").textContent += "FFA -> Black pixels\r\n";
+      // document.getElementById("howto").textContent += "SINGLE -> Bordered squares\r\n";
 
-      document.getElementById("howto").textContent += "\r\n";
-      document.getElementById("howto").textContent += "Game Goals\r\n";
-      document.getElementById("howto").textContent += "FFA -> Live long\r\n";
-      document.getElementById("howto").textContent += "SINGLE -> Remove the cracks\r\n";
-      document.getElementById("howto").textContent += "*no score board for FFA yet\r\n";
+      // document.getElementById("howto").textContent += "\r\n";
+      // document.getElementById("howto").textContent += "Game Goals\r\n";
+      // document.getElementById("howto").textContent += "FFA -> Live long\r\n";
+      // document.getElementById("howto").textContent += "SINGLE -> Remove the cracks\r\n";
+      // document.getElementById("howto").textContent += "*no score board for FFA yet\r\n";
+      let x = document.getElementById("HowToPlay");
+      if (x.style.display === "none") {
+        x.style.display = "block";
+        document.getElementById("howto").textContent = "Collapse";
+      } else {
+        x.style.display = "none";
+        document.getElementById("howto").textContent = "How to play";
+      }
     }
 
     let gameMode = "/ffa";
