@@ -286,7 +286,7 @@ function drawScoreBoard(ranking) {
   }
 }
 
-function draw(id, _gametime, buffer, playerPos, playerColor) {
+function draw(id, _gametime, buffer, playerPosAndColor) {
   myCanvas.width = window.innerWidth;
   myCanvas.height = window.innerHeight;
   myContext.fillStyle = "#000000";
@@ -299,8 +299,8 @@ function draw(id, _gametime, buffer, playerPos, playerColor) {
 
   decodeBytes(buffer, window.cb);
 
-  if (id in playerPos) {
-    gamePlayer = playerPos[id];
+  if (id in playerPosAndColor) {
+    gamePlayer = playerPosAndColor[id];
   }
   if (GUI_MODE == "PLAIN") {
     myContext.fillStyle = "#595959";
@@ -334,11 +334,11 @@ function draw(id, _gametime, buffer, playerPos, playerColor) {
   //   );
   // });
 
-  Object.keys(playerPos).forEach((_id) => {
+  Object.keys(playerPosAndColor).forEach((_id) => {
     window.cb.drawPlayer(
-      playerPos[_id].gridX - gamePlayer.gridX,
-      playerPos[_id].gridY - gamePlayer.gridY,
-      playerColor[_id]
+      playerPosAndColor[_id].gridX - gamePlayer.gridX,
+      playerPosAndColor[_id].gridY - gamePlayer.gridY,
+      playerPosAndColor[_id].color
     );
   });
 
@@ -365,8 +365,7 @@ function render() {
       window.user.socketid,
       currentState.gametime,
       currentState.buffer,
-      currentState.playerPos,
-      currentState.playerColor
+      currentState.playerPosAndColor
     );
   }
 }

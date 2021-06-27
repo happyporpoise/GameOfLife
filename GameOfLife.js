@@ -96,7 +96,7 @@ class Game {
     this.io = _io;
     this.sockets = {};
     this.players = {};
-    this.towerids = ['tower1','tower2','tower3','tower4','tower5','tower6','tower7','tower8'];
+    this.towerids = ['RandomBot1','RandomBot2','RandomBot3','RandomBot4','RandomBot5'];
 
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
@@ -126,8 +126,9 @@ class Game {
       t: Date.now(),
       gametime: this.gametime,
       buffer: this.buffer,
-      playerPos: this.getPlayerPos(),
-      playerColor: this.getPlayerColor()
+      // playerPos: this.getPlayerPos(),
+      // playerColor: this.getPlayerColor(),
+      playerPosAndColor: this.getPlayerPosAndColor()
     });
     if(this.groupName=='FFA'){
       this.rankingUpdate();
@@ -505,6 +506,18 @@ class Game {
       col[key] = this.players[key].color;
     });
     return col;
+  }
+
+  getPlayerPosAndColor() {
+    let posAndCol = {};
+    Object.keys(this.players).forEach((key) => {
+      posAndCol[key] = {
+        gridX: this.players[key].gridX,
+        gridY: this.players[key].gridY,
+        color: this.players[key].color,
+      };
+    });
+    return posAndCol;
   }
 }
 
