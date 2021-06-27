@@ -41,7 +41,7 @@
 
 <body>
   <ul id="messages"></ul>
-  <div class="container-fluid" style="border: none;">
+  <div class="container-fluid">
     <div class="row">
       <div class="col">
         <div class="center">
@@ -70,7 +70,7 @@
       <div class="col">
         <div class="center">
           This is the tale of...<br>
-          <input type="text" class="form-text" id="usernameInput" name="username" placeholder="ENTER USERNAME">
+          <input type="text" class="form-text-lg" id="usernameInput" name="username" placeholder="ENTER USERNAME" style="text-align:center">
           <br>
           (press enter to spawn)<br>
           <button id="nameButton" onclick="setUser(() => {redirect(gameMode);})"
@@ -101,6 +101,16 @@
         </div>
       </div>
     </div>
+    <div class="row">
+      <div class="col">
+        <div class="center">
+          <br>
+          <hr style="width:40%; margin: auto;">
+          <br>
+          Developed by <a href = "https://www.its.caltech.edu/~spark3/">Sunghyuk Park</a> and Han Gyeol Suh
+        </div>
+      </div>
+    </div>
   </div>
   </div>
 
@@ -108,7 +118,7 @@
   </div>
 
 
-  <canvas id="myCanvas" style="border:1px solid lightgrey;">
+  <canvas id="myCanvas" style="border:0px solid lightgrey;">
     Your browser does not support the HTML5 canvas tag.
   </canvas>
 

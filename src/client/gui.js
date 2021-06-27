@@ -242,18 +242,23 @@ function decodeBytes(buffer, cb) {
 let initTime = 0;
 
 function drawScoreBoard(ranking){
-  const btngroup=document.getElementById("btn-group");
-  const numChildren=btngroup.children.length;
-  for (let i = 1; i < numChildren; i++) {
-    btngroup.removeChild(btngroup.children[btngroup.children.length-1]);
+  const listgroup=document.getElementById("leaderBoard");
+  const numChildren=listgroup.children.length-1;
+  for (let i = 1; i <= numChildren; i++) {
+    listgroup.removeChild(listgroup.children[listgroup.children.length-1]);
   }
 
   for (let i = 0; i < ranking.length; i++) {  
-    let newbutton=document.createElement('button');
-    btngroup.appendChild(newbutton);
-    newbutton.textContent="#"+(i+1) +"\t"+ranking[i].name+"\t"+(ranking[i].time/10).toFixed(1)+"s";
+    let newListItem = document.createElement('li');
+    newListItem.className = "list-group-item";
+    let newbadge = document.createElement('span');
+    newbadge.className = "badge rounded-pill bg-light text-dark";
+    newbadge.style.cssText = "width:100%;";
+    newListItem.appendChild(newbadge);
+    listgroup.appendChild(newListItem);
+    // newbadge.textContent="#"+(i+1) +"\t"+ranking[i].name+"\t"+(ranking[i].time/10).toFixed(1)+"s";
+    newbadge.textContent="\t"+ranking[i].name+"\t-\t"+(ranking[i].time/10).toFixed(1);
   }
-
 }
 
 function draw(id, _gametime, buffer, playerPos){
@@ -265,8 +270,8 @@ function draw(id, _gametime, buffer, playerPos){
     if (initTime == 0) initTime = _gametime;
 
     
-    document.getElementById("clock1").textContent =
-      "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
+    // document.getElementById("clock1").textContent =
+    //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
 
     decodeBytes(buffer, window.cb);
 

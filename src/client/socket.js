@@ -129,9 +129,9 @@ function gameEnd(tag,i){
     document.getElementById("gameResult").textContent="CLEAR!"
     const rankingButton=document.createElement("button");
     rankingButton.textContent="RANKING #"+(i+1);
-    document.getElementById('btn-group2').appendChild(rankingButton);
+    document.getElementById('dead-alert').appendChild(rankingButton);
   }
-  document.getElementById('btn-group2').style.visibility='visible';
+  document.getElementById('dead-alert').style.visibility='visible';
               // if (confirm(`You're dead! Restart?`)) {
               //   redirect("/ffa");
               // } else {

@@ -3,26 +3,58 @@
 
 <head>
   <title>GameoftheGameofLife</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
+    integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="/src/client/index2.css">
+
+  <style>
+    .list-group {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 13%;
+    }
+
+    .list-group-item {
+      background-color: transparent;
+      border: none;
+      height: 25px;
+    }
+
+    .alert {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      background-color: rgba(0, 0, 0, 0.5);
+      border: none;
+    }
+
+    .center {
+      text-align: center;
+      margin: auto;
+    }
+  </style>
+
 </head>
 
 <body>
   <ul id="messages"></ul>
 
-  <div class="btn-group" id="btn-group">
-    <button id="clock1">Time:0s</button>
-    <!--<button id="PLAIN" onclick="setupVar(cb)(this.id)">PLAIN</button>
-    <button id="PLAIN-NUT" onclick="setupVar(cb)(this.id)">PLAIN-NUT</button>
-    <button id="SPACEDECAY:TACHYON" onclick="setupVar(cb)(this.id)">SPACEDECAY:TACHYON</button>
-    <button id="SPACEDECAY:TERRAIN" onclick="setupVar(cb)(this.id)">SPACEDECAY:TERRAIN</button>
-    <button id="NONE" onclick="setupVar(this.id)">NONE</button>-->
-  </div>  
-
-  <div class="btn-group2" id="btn-group2">
-    <button id="gameResult"></button>
-    <button id="/" onclick="redirect(this.id)">HOME</button>
-    <button id="/ffa" onclick="redirect(this.id)">RESTART</button>
+  <div class="alert alert-primary" id="dead-alert" style="visibility: hidden;">
+    <div class="center">
+      <h1><span class="badge bg-warning text-dark" id="gameResult" style="width: 100%;"></span></h1>
+      <button type="button" class="btn btn-primary" id="/" onclick="redirect(this.id)">HOME</button>
+      <button type="button" class="btn btn-primary" id="/ffa" onclick="redirect(this.id)">RESTART</button>
+    </div>
   </div>
+
+  <ul class="list-group list-group-flush" id="leaderBoard">
+    <li class="list-group-item"><span class="badge rounded-pill bg-info text-dark"
+        style="width:100%;">Leaderboard</span></li>
+    <!-- <li class="list-group-item"><span class="badge rounded-pill bg-info text-dark" style = "width:100%;" id="clock1">Time:0s</span></li> -->
+  </ul>
 
   <canvas id="myCanvas" style="border:1px solid lightgrey;">
     Your browser does not support the HTML5 canvas tag.
@@ -33,11 +65,10 @@
   <script src="/src/client/state.js"></script>
   <script src="/src/client/gui.js"></script>
   <script src="/src/client/socket.js"></script>
-  
+
   <script>
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
-    document.getElementById('btn-group2').style.visibility='hidden';
     gameSet("FFA");
   </script>
 </body>
