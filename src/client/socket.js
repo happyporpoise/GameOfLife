@@ -123,7 +123,7 @@ function gameSet(tag){
 function gameEnd(tag,i){
   socket.close();
   if(tag=="dead"){
-    document.getElementById("gameResult").textContent="DEAD!"
+    document.getElementById("gameResult").textContent="Game over 😢"
   }
   if(tag=="singleClear"){
     document.getElementById("gameResult").textContent="CLEAR!"

@@ -78,6 +78,7 @@ class Player {
     this.gliderCoolTimeLeft = 0;
     this.initTime = 0;
     this.age = 0;
+    this.color = "#"+Math.floor(Math.random()*16777215).toString(16);
   }
 }
 
@@ -126,6 +127,7 @@ class Game {
       gametime: this.gametime,
       buffer: this.buffer,
       playerPos: this.getPlayerPos(),
+      playerColor: this.getPlayerColor()
     });
     if(this.groupName=='FFA'){
       this.rankingUpdate();
@@ -303,7 +305,8 @@ class Game {
       this.players[id].age=this.gametime-this.players[id].initTime;
       ffaRanking.push({
         'name' : this.players[id].name,
-        'time' : this.players[id].age
+        'time' : this.players[id].age,
+        'color' : this.players[id].color
       });
     });
   }
@@ -494,6 +497,14 @@ class Game {
       };
     });
     return pos;
+  }
+
+  getPlayerColor() {
+    let col = {};
+    Object.keys(this.players).forEach((key) => {
+      col[key] = this.players[key].color;
+    });
+    return col;
   }
 }
 

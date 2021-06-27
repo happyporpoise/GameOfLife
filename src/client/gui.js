@@ -1,5 +1,3 @@
-//const { numRows } = require("../../GameOfLife");
-
 let myCanvas = document.getElementById("myCanvas");
 let myContext = myCanvas.getContext("2d");
 myCanvas.width = window.innerWidth;
@@ -8,7 +6,7 @@ let xcenter = myCanvas.width / 2;
 let ycenter = myCanvas.height / 2;
 
 //let GUI_MODE="PLAIN";
-let GUI_MODE="PLAIN-NUT";
+let GUI_MODE = "PLAIN-NUT";
 //let GUI_MODE = "SPACEDECAY";
 //let GUI_MODE="NONE";
 
@@ -24,9 +22,9 @@ function mod(n, m) {
 }
 
 class colorBoard {
-  constructor(numColumns,numRows) {
-    this.numColumns=numColumns;
-    this.numRows=numRows; 
+  constructor(numColumns, numRows) {
+    this.numColumns = numColumns;
+    this.numRows = numRows;
 
     this.cellAlive = new Array(-Math.floor((-numColumns * numRows) / 32) * 32);
 
@@ -72,24 +70,24 @@ class colorBoard {
   static colorScheme = {
     TACHYON: [
       ["#000000", NaN],
-      ["#baeaf5", 3*12],
-      ["#5fc6ff", 5*12],
-      ["#E76583", 20*12],
-      ["#44008b", 40*12],
-      ["#123067", 40*12],
-      ["#13076f", 50*12],
-      ["#13174f", 100*12],
-      ["#281232", 190*12],
-      ["#20080e", 90*12],
+      ["#baeaf5", 3 * 12],
+      ["#5fc6ff", 5 * 12],
+      ["#E76583", 20 * 12],
+      ["#44008b", 40 * 12],
+      ["#123067", 40 * 12],
+      ["#13076f", 50 * 12],
+      ["#13174f", 100 * 12],
+      ["#281232", 190 * 12],
+      ["#20080e", 90 * 12],
     ],
 
     TERRAIN: [
       ["#034077", NaN],
-      ["#7e2812", 3*12],
-      ["#eeb46f", 10*12],
-      ["#f3dcb5", 16 * 5*12],
-      ["#2da9cd", 16 * 8*12],
-      ["#269dc7", 16 * 4 * 8 * 2*12],
+      ["#7e2812", 3 * 12],
+      ["#eeb46f", 10 * 12],
+      ["#f3dcb5", 16 * 5 * 12],
+      ["#2da9cd", 16 * 8 * 12],
+      ["#269dc7", 16 * 4 * 8 * 2 * 12],
     ],
   };
 
@@ -160,10 +158,12 @@ class colorBoard {
   }
 
   drawPixel(tag, x, y) {
-    let newx = mod(x +Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth
-                +Math.floor(myCanvas.width/2-this.numColumns / 2* Cellwidth);
-    let newy = mod(y +Math.floor(this.numRows / 2), this.numRows) * Cellheight
-                +Math.floor(myCanvas.height/2-this.numRows / 2* Cellheight);
+    let newx =
+      mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
+      Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
+    let newy =
+      mod(y + Math.floor(this.numRows / 2), this.numRows) * Cellheight +
+      Math.floor(myCanvas.height / 2 - (this.numRows / 2) * Cellheight);
 
     switch (GUI_MODE) {
       case "PLAIN":
@@ -206,14 +206,28 @@ class colorBoard {
         break;
     }
   }
+
+  drawPlayer(x, y, color) {
+    let newx =
+      mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
+      Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
+    let newy =
+      mod(y + Math.floor(this.numRows / 2), this.numRows) * Cellheight +
+      Math.floor(myCanvas.height / 2 - (this.numRows / 2) * Cellheight);
+
+      myContext.fillStyle = color;
+      myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+  }
 }
 
-function setupVar(_GUI_MODE){
+function setupVar(_GUI_MODE) {
   let codeparse = _GUI_MODE.split(":");
-    GUI_MODE = codeparse.shift();
-    if (GUI_MODE == "SPACEDECAY") {
-      codeparse.length > 0 ? window.cb.setDecayVars(codeparse[0]) : window.cb.setDecayVars();
-    }
+  GUI_MODE = codeparse.shift();
+  if (GUI_MODE == "SPACEDECAY") {
+    codeparse.length > 0
+      ? window.cb.setDecayVars(codeparse[0])
+      : window.cb.setDecayVars();
+  }
 }
 
 let gamePlayer = { gridX: 0, gridY: 0 };
@@ -241,74 +255,94 @@ function decodeBytes(buffer, cb) {
 
 let initTime = 0;
 
-function drawScoreBoard(ranking){
-  const listgroup=document.getElementById("leaderBoard");
-  const numChildren=listgroup.children.length-1;
+function drawScoreBoard(ranking) {
+  const listgroup = document.getElementById("leaderBoard");
+  const numChildren = listgroup.children.length - 1;
   for (let i = 1; i <= numChildren; i++) {
-    listgroup.removeChild(listgroup.children[listgroup.children.length-1]);
+    listgroup.removeChild(listgroup.children[listgroup.children.length - 1]);
   }
 
-  for (let i = 0; i < ranking.length; i++) {  
-    let newListItem = document.createElement('li');
+  for (let i = 0; i < ranking.length; i++) {
+    let newListItem = document.createElement("li");
     newListItem.className = "list-group-item";
-    let newbadge = document.createElement('span');
+    let newbadge = document.createElement("span");
     newbadge.className = "badge rounded-pill bg-light text-dark";
     newbadge.style.cssText = "width:100%;";
+    let newbadgeUsername = document.createElement("span");
+    newbadgeUsername.style.color = ranking[i].color;
+    newbadgeUsername.textContent =
+    "\t" + ranking[i].name;
+    newbadge.appendChild(newbadgeUsername);
+    let newbadgeScore = document.createElement("span");
+    newbadgeScore.style.color = "black";
+    newbadgeScore.textContent =
+    "\t-\t" + (ranking[i].time / 10).toFixed(1);
+    newbadge.appendChild(newbadgeScore);
     newListItem.appendChild(newbadge);
     listgroup.appendChild(newListItem);
     // newbadge.textContent="#"+(i+1) +"\t"+ranking[i].name+"\t"+(ranking[i].time/10).toFixed(1)+"s";
-    newbadge.textContent="\t"+ranking[i].name+"\t-\t"+(ranking[i].time/10).toFixed(1);
+    // newbadgeContent.textContent =
+    //   "\t" + ranking[i].name + "\t-\t" + (ranking[i].time / 10).toFixed(1);
   }
 }
 
-function draw(id, _gametime, buffer, playerPos){
-    myCanvas.width = window.innerWidth;
-    myCanvas.height = window.innerHeight;
-    myContext.fillStyle = "#000000";
+function draw(id, _gametime, buffer, playerPos, playerColor) {
+  myCanvas.width = window.innerWidth;
+  myCanvas.height = window.innerHeight;
+  myContext.fillStyle = "#000000";
+  myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
+
+  if (initTime == 0) initTime = _gametime;
+
+  // document.getElementById("clock1").textContent =
+  //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
+
+  decodeBytes(buffer, window.cb);
+
+  if (id in playerPos) {
+    gamePlayer = playerPos[id];
+  }
+  if (GUI_MODE == "PLAIN") {
+    myContext.fillStyle = "#595959";
     myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
+  } else if (GUI_MODE == "SPACEDECAY") {
+    update();
+  } else {
+    myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
+  }
 
-    if (initTime == 0) initTime = _gametime;
-
-    
-    // document.getElementById("clock1").textContent =
-    //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
-
-    decodeBytes(buffer, window.cb);
-
-    if (id in playerPos) {
-      gamePlayer = playerPos[id];
-    }
-    if (GUI_MODE == "PLAIN") {
-      myContext.fillStyle = "#595959";
-      myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
-    } else if (GUI_MODE == "SPACEDECAY") {
-      update();
-    } else {
-      myContext.clearRect(0, 0, myCanvas.width, myCanvas.height);
-    }
-
-    for (let i = 0; i < window.cb.numRows * window.cb.numColumns; i++) {
-      window.cb.drawPixel(
-        (cb.cellAlive[i] ? "cellAlive" : "cellDead") +
-          (GUI_MODE == "SPACEDECAY"
-            ? window.cb.color_list[
-                window.cb.decay_counts[window.cb.gridX[i] + window.cb.gridY[i] * window.cb.numColumns]
+  for (let i = 0; i < window.cb.numRows * window.cb.numColumns; i++) {
+    window.cb.drawPixel(
+      (cb.cellAlive[i] ? "cellAlive" : "cellDead") +
+        (GUI_MODE == "SPACEDECAY"
+          ? window.cb.color_list[
+              window.cb.decay_counts[
+                window.cb.gridX[i] + window.cb.gridY[i] * window.cb.numColumns
               ]
-            : ""),
-        window.cb.gridX[i] - gamePlayer.gridX,
-        window.cb.gridY[i] - gamePlayer.gridY
-      );
-    }
+            ]
+          : ""),
+      window.cb.gridX[i] - gamePlayer.gridX,
+      window.cb.gridY[i] - gamePlayer.gridY
+    );
+  }
 
-    Object.keys(playerPos).forEach((_id) => {
-      window.cb.drawPixel(
-        "player",
-        playerPos[_id].gridX - gamePlayer.gridX,
-        playerPos[_id].gridY - gamePlayer.gridY
-      );
-    });
+  // Object.keys(playerPos).forEach((_id) => {
+  //   window.cb.drawPixel(
+  //     "player",
+  //     playerPos[_id].gridX - gamePlayer.gridX,
+  //     playerPos[_id].gridY - gamePlayer.gridY
+  //   );
+  // });
 
-    //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
+  Object.keys(playerPos).forEach((_id) => {
+    window.cb.drawPlayer(
+      playerPos[_id].gridX - gamePlayer.gridX,
+      playerPos[_id].gridY - gamePlayer.gridY,
+      playerColor[_id]
+    );
+  });
+
+  //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
 }
 
 function update() {
@@ -316,18 +350,26 @@ function update() {
     if (window.cb.cellAlive[i]) {
       window.cb.decay_counts[i] = 0;
     } else {
-      window.cb.decay_counts[i] = Math.min(window.cb.decay_counts[i] + 1, window.cb.maxDecay);
+      window.cb.decay_counts[i] = Math.min(
+        window.cb.decay_counts[i] + 1,
+        window.cb.maxDecay
+      );
     }
   }
 }
 
-function render(){
+function render() {
   const currentState = getCurrentState();
-  if ('gametime' in currentState) {
-    draw(window.user.socketid,currentState.gametime, currentState.buffer, currentState.playerPos);
+  if ("gametime" in currentState) {
+    draw(
+      window.user.socketid,
+      currentState.gametime,
+      currentState.buffer,
+      currentState.playerPos,
+      currentState.playerColor
+    );
   }
 }
-    
 
 function startRendering() {
   const renderInterval = setInterval(render, 1000 / 60);
