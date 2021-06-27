@@ -116,10 +116,11 @@
   background-color: #444;
 } */
 
-/* #myCanvas {
-  position: static;
+#myCanvas {
+  position: absolute;
+  /*position: static*/
   left: 0;
   top: 0;
   width: 100%;
   height: 100%;
-} */
+} 

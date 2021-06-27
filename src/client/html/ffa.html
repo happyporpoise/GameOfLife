@@ -42,6 +42,10 @@
 <body>
   <ul id="messages"></ul>
 
+  <canvas id="myCanvas" style="border:1px solid lightgrey;">
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+
   <div class="alert alert-primary" id="dead-alert" style="visibility: hidden;">
     <div class="center">
       <h3><span class="badge bg-warning text-dark" id="gameResult" style="width: 100%;"></span></h3>
@@ -55,10 +59,6 @@
         style="width:100%;">Leaderboard</span></li>
     <!-- <li class="list-group-item"><span class="badge rounded-pill bg-info text-dark" style = "width:100%;" id="clock1">Time:0s</span></li> -->
   </ul>
-
-  <canvas id="myCanvas" style="border:1px solid lightgrey;">
-    Your browser does not support the HTML5 canvas tag.
-  </canvas>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/client/download.js"></script>
