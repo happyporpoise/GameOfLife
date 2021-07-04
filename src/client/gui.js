@@ -220,6 +220,9 @@ class colorBoard {
       myContext.font = "13px Arial";
       myContext.textAlign = "center";
       myContext.fillText(username, newx + Cellwidth/2, newy - Cellheight/4);
+      // myContext.strokeStyle = "black";
+      // myContext.lineWidth = 0.1;
+      // myContext.strokeText(username, newx + Cellwidth/2, newy - Cellheight/4);
   }
 }
 

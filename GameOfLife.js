@@ -78,7 +78,8 @@ class Player {
     this.gliderCoolTimeLeft = 0;
     this.initTime = 0;
     this.age = 0;
-    this.color = "#"+Math.floor(Math.random()*16777215).toString(16);
+    // this.color = "#"+Math.floor(Math.random()*16777215).toString(16);
+    this.color = `hsl( ${Math.floor(Math.random()*360)}, ${Math.floor(50+Math.random()*30)}%, ${Math.floor(33+Math.random()*33)}%)`;
   }
 }
 
