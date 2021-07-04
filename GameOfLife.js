@@ -128,7 +128,7 @@ class Game {
       buffer: this.buffer,
       // playerPos: this.getPlayerPos(),
       // playerColor: this.getPlayerColor(),
-      playerPosAndColor: this.getPlayerPosAndColor()
+      playerNamePosAndColor: this.getPlayerNamePosAndColor()
     });
     if(this.groupName=='FFA'){
       this.rankingUpdate();
@@ -508,16 +508,17 @@ class Game {
     return col;
   }
 
-  getPlayerPosAndColor() {
-    let posAndCol = {};
+  getPlayerNamePosAndColor() {
+    let namePosAndCol = {};
     Object.keys(this.players).forEach((key) => {
-      posAndCol[key] = {
+      namePosAndCol[key] = {
+        name : this.players[key].name,
         gridX: this.players[key].gridX,
         gridY: this.players[key].gridY,
         color: this.players[key].color,
       };
     });
-    return posAndCol;
+    return namePosAndCol;
   }
 }
 

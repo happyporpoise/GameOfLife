@@ -207,7 +207,7 @@ class colorBoard {
     }
   }
 
-  drawPlayer(x, y, color) {
+  drawPlayer(x, y, color, username) {
     let newx =
       mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
       Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
@@ -217,6 +217,9 @@ class colorBoard {
 
       myContext.fillStyle = color;
       myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+      myContext.font = "13px Arial";
+      myContext.textAlign = "center";
+      myContext.fillText(username, newx + Cellwidth/2, newy - Cellheight/4);
   }
 }
 
@@ -286,7 +289,7 @@ function drawScoreBoard(ranking) {
   }
 }
 
-function draw(id, _gametime, buffer, playerPosAndColor) {
+function draw(id, _gametime, buffer, playerNamePosAndColor) {
   myCanvas.width = window.innerWidth;
   myCanvas.height = window.innerHeight;
   myContext.fillStyle = "#000000";
@@ -299,8 +302,8 @@ function draw(id, _gametime, buffer, playerPosAndColor) {
 
   decodeBytes(buffer, window.cb);
 
-  if (id in playerPosAndColor) {
-    gamePlayer = playerPosAndColor[id];
+  if (id in playerNamePosAndColor) {
+    gamePlayer = playerNamePosAndColor[id];
   }
   if (GUI_MODE == "PLAIN") {
     myContext.fillStyle = "#595959";
@@ -334,11 +337,12 @@ function draw(id, _gametime, buffer, playerPosAndColor) {
   //   );
   // });
 
-  Object.keys(playerPosAndColor).forEach((_id) => {
+  Object.keys(playerNamePosAndColor).forEach((_id) => {
     window.cb.drawPlayer(
-      playerPosAndColor[_id].gridX - gamePlayer.gridX,
-      playerPosAndColor[_id].gridY - gamePlayer.gridY,
-      playerPosAndColor[_id].color
+      playerNamePosAndColor[_id].gridX - gamePlayer.gridX,
+      playerNamePosAndColor[_id].gridY - gamePlayer.gridY,
+      playerNamePosAndColor[_id].color,
+      playerNamePosAndColor[_id].name
     );
   });
 
@@ -365,7 +369,7 @@ function render() {
       window.user.socketid,
       currentState.gametime,
       currentState.buffer,
-      currentState.playerPosAndColor
+      currentState.playerNamePosAndColor
     );
   }
 }

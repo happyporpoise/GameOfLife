@@ -95,7 +95,7 @@ function gameSet(tag){
         socket.emit("gameSet", tag , window.user.id,
           (response) => {
             
-            window.cb=new colorBoard(response.numColumns,response.numRows);;
+            window.cb = new colorBoard(response.numColumns,response.numRows);;
 
             setupVar(GUI_MODE);
             
