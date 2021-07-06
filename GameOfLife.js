@@ -110,7 +110,7 @@ class Game {
       "RandomBot4",
       "RandomBot5",
     ];
-    this.smartBotIDs = ["DodgeBot1"];
+    this.smartBotIDs = ["DodgeBot"];
 
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
@@ -130,12 +130,12 @@ class Game {
     this.gametime++;
     // io.emit('chat message', "This is a useless message :)");
     this.checkSurrounding();
+    this.playerMovement();
+    this.gliderUpdate();
     if (this.groupName == "FFA") {
       this.towerUpdate();
       this.smartBotUpdate();
     }
-    this.playerMovement();
-    this.gliderUpdate();
     this.updateCoolTime();
     this.encodeBytes();
     // this.io.emit('draw',this.gametime, this.buffer,this.getPlayerPos());
@@ -397,7 +397,7 @@ class Game {
           safeDirections.push("SE");
         }
 
-        console.log(safeDirections);
+        // console.log(safeDirections.length);
 
         let directionToMove = randomChoice(safeDirections);
         if (directionToMove == "N") {
