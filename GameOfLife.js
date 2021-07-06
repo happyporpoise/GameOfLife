@@ -1,25 +1,31 @@
 "use strict";
 
-const fs = require('fs');
-let ranking =JSON.parse(fs.readFileSync('ranking.txt',{encoding:'utf8', flag:'r'},(err,data)=>{
-  if (err) return console.log(err);}));
+const fs = require("fs");
+let ranking = JSON.parse(
+  fs.readFileSync(
+    "ranking.txt",
+    { encoding: "utf8", flag: "r" },
+    (err, data) => {
+      if (err) return console.log(err);
+    }
+  )
+);
 
-function saveRanking(filename){
+function saveRanking(filename) {
   fs.writeFile(filename, JSON.stringify(ranking), function (err) {
     if (err) return console.log(err);
-    console.log(filename+" saved");
+    console.log(filename + " saved");
     console.log(JSON.stringify(ranking));
   });
 }
 
-let ffaRanking=[];
+let ffaRanking = [];
 
 function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
-
-const keyboardMsgs=[
+const keyboardMsgs = [
   "movingDown",
   "movingDown",
   "movingUp",
@@ -35,11 +41,11 @@ const keyboardMsgs=[
   "pressedSW",
   "pressedSW",
   "pressedSE",
-  "pressedSE"
-]
+  "pressedSE",
+];
 
-function randomChoice(li){
-  const ind=Math.floor(Math.random() * li.length);
+function randomChoice(li) {
+  const ind = Math.floor(Math.random() * li.length);
   return li[ind];
 }
 
@@ -57,10 +63,10 @@ class Player {
   static width = 10;
   static height = 10;
   static gliderCoolTime = 16; // number of generations
-  constructor(gridX, gridY,name) {
+  constructor(gridX, gridY, name) {
     this.gridX = gridX;
     this.gridY = gridY;
-    this.name=name;
+    this.name = name;
     this.alive = true;
     this.movingUp = false;
     this.movingDown = false;
@@ -79,25 +85,32 @@ class Player {
     this.initTime = 0;
     this.age = 0;
     // this.color = "#"+Math.floor(Math.random()*16777215).toString(16);
-    this.color = `hsl( ${Math.floor(Math.random()*360)}, ${Math.floor(50+Math.random()*30)}%, ${Math.floor(33+Math.random()*33)}%)`;
+    this.color = `hsl( ${Math.floor(Math.random() * 360)}, ${Math.floor(
+      50 + Math.random() * 30
+    )}%, ${Math.floor(33 + Math.random() * 33)}%)`;
   }
 }
 
 class Game {
-
-  constructor(_io,groupName,numColumns,numRows) {
-
+  constructor(_io, groupName, numColumns, numRows) {
     this.numColumns = numColumns;
     this.numRows = numRows;
-    
+
     this.mapSum = true;
 
-    this.groupName=groupName;
+    this.groupName = groupName;
     this.gametime = 0;
     this.io = _io;
     this.sockets = {};
     this.players = {};
-    this.towerids = ['RandomBot1','RandomBot2','RandomBot3','RandomBot4','RandomBot5'];
+    this.towerids = [
+      "RandomBot1",
+      "RandomBot2",
+      "RandomBot3",
+      "RandomBot4",
+      "RandomBot5",
+    ];
+    this.smartBotIDs = ["DodgeBot1"];
 
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
@@ -117,7 +130,10 @@ class Game {
     this.gametime++;
     // io.emit('chat message', "This is a useless message :)");
     this.checkSurrounding();
-    if(this.groupName=="FFA"){this.towerUpdate();}
+    if (this.groupName == "FFA") {
+      this.towerUpdate();
+      this.smartBotUpdate();
+    }
     this.playerMovement();
     this.gliderUpdate();
     this.updateCoolTime();
@@ -129,9 +145,9 @@ class Game {
       buffer: this.buffer,
       // playerPos: this.getPlayerPos(),
       // playerColor: this.getPlayerColor(),
-      playerNamePosAndColor: this.getPlayerNamePosAndColor()
+      playerNamePosAndColor: this.getPlayerNamePosAndColor(),
     });
-    if(this.groupName=='FFA'){
+    if (this.groupName == "FFA") {
       this.rankingUpdate();
       this.io.to(this.groupName).emit("drawScoreBoard", ffaRanking);
     }
@@ -193,11 +209,11 @@ class Game {
       this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
     }
 
-    if(this.groupName!="FFA"){
-      this.mapSum=false;
+    if (this.groupName != "FFA") {
+      this.mapSum = false;
       for (let i = 0; i < this.gameObjects.length; i++) {
-        if(this.gameObjects[i].alive){
-          this.mapSum=true;
+        if (this.gameObjects[i].alive) {
+          this.mapSum = true;
           return;
         }
       }
@@ -242,28 +258,33 @@ class Game {
   }
 
   checkPlayerIsAlive() {
-    if(!this.mapSum && this.groupName in this.players){
+    if (!this.mapSum && this.groupName in this.players) {
       let i;
-      for (i = 0; i < ranking.length; i++){
-        if(this.gametime<ranking[i].time){break;}
+      for (i = 0; i < ranking.length; i++) {
+        if (this.gametime < ranking[i].time) {
+          break;
+        }
       }
-      ranking.splice( i, 0, {
-        'name':this.players[this.groupName].name,
-        'time':this.gametime
-      } )
-      ranking=ranking.slice(0,100);
-      saveRanking('ranking.txt');
-      this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,15));
-      this.io.to(this.groupName).emit("singleClear",i);
+      ranking.splice(i, 0, {
+        name: this.players[this.groupName].name,
+        time: this.gametime,
+      });
+      ranking = ranking.slice(0, 100);
+      saveRanking("ranking.txt");
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 15));
+      this.io.to(this.groupName).emit("singleClear", i);
       delete this.players[this.groupName];
     }
 
     Object.keys(this.players).forEach((socketid) => {
       if (
         this.players[socketid].alive &&
-        this.isAlive(this.players[socketid].gridX, this.players[socketid].gridY) === 1
+        this.isAlive(
+          this.players[socketid].gridX,
+          this.players[socketid].gridY
+        ) === 1
       ) {
-        if(!(socketid in this.towerids)){
+        if (!(socketid in this.towerids) && !(socketid in this.smartBotIDs)) {
           this.io.to(socketid).emit("dead");
         }
         delete this.players[socketid];
@@ -292,23 +313,151 @@ class Game {
     });
   }
 
-  towerUpdate(){
-    this.towerids.forEach((id)=>{
-      if(!(id in this.players)){
-        this.addPlayer(id,id);
+  towerUpdate() {
+    this.towerids.forEach((id) => {
+      if (!(id in this.players)) {
+        this.addPlayer(id, id);
       }
-      this.keyboardInput(id,randomChoice(keyboardMsgs),(Math.random()>0.5));
+      this.keyboardInput(id, randomChoice(keyboardMsgs), Math.random() > 0.5);
     });
   }
 
-  rankingUpdate(){
-    ffaRanking=[];
-    Object.keys(this.players).forEach((id) =>{
-      this.players[id].age=this.gametime-this.players[id].initTime;
+  numNearbyAlive(x, y) {
+    return (
+      this.isAlive(x - 1, y - 1) +
+      this.isAlive(x, y - 1) +
+      this.isAlive(x + 1, y - 1) +
+      this.isAlive(x - 1, y) +
+      this.isAlive(x + 1, y) +
+      this.isAlive(x - 1, y + 1) +
+      this.isAlive(x, y + 1) +
+      this.isAlive(x + 1, y + 1)
+    );
+  }
+
+  smartBotUpdate() {
+    this.smartBotIDs.forEach((id) => {
+      if (!(id in this.players)) {
+        this.addPlayer(id, id);
+      }
+      let x = this.players[id].gridX;
+      let y = this.players[id].gridY;
+      if (this.numNearbyAlive(x, y) === 3) {
+        let safeDirections = [];
+        if (
+          !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
+          (this.isAlive(x - 1, y - 1) === 0 &&
+            this.numNearbyAlive(x - 1, y - 1) != 3)
+        ) {
+          safeDirections.push("NW");
+        }
+        if (
+          !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
+          (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+        ) {
+          safeDirections.push("N");
+        }
+        if (
+          !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
+          (this.isAlive(x + 1, y - 1) === 0 &&
+            this.numNearbyAlive(x + 1, y - 1) != 3)
+        ) {
+          safeDirections.push("NE");
+        }
+        if (
+          !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
+          (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+        ) {
+          safeDirections.push("W");
+        }
+        if (
+          !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
+          (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+        ) {
+          safeDirections.push("E");
+        }
+        if (
+          !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
+          (this.isAlive(x - 1, y + 1) === 0 &&
+            this.numNearbyAlive(x - 1, y + 1) != 3)
+        ) {
+          safeDirections.push("SW");
+        }
+        if (
+          !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
+          (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+        ) {
+          safeDirections.push("S");
+        }
+        if (
+          !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
+          (this.isAlive(x + 1, y + 1) === 0 &&
+            this.numNearbyAlive(x + 1, y + 1) != 3)
+        ) {
+          safeDirections.push("SE");
+        }
+
+        console.log(safeDirections);
+
+        let directionToMove = randomChoice(safeDirections);
+        if (directionToMove == "N") {
+          this.players[id].movingUp = true;
+          this.players[id].movingDown = false;
+          this.players[id].movingLeft = false;
+          this.players[id].movingRight = false;
+        } else if (directionToMove == "S") {
+          this.players[id].movingUp = false;
+          this.players[id].movingDown = true;
+          this.players[id].movingLeft = false;
+          this.players[id].movingRight = false;
+        } else if (directionToMove == "W") {
+          this.players[id].movingUp = false;
+          this.players[id].movingDown = false;
+          this.players[id].movingLeft = true;
+          this.players[id].movingRight = false;
+        } else if (directionToMove == "E") {
+          this.players[id].movingUp = false;
+          this.players[id].movingDown = false;
+          this.players[id].movingLeft = false;
+          this.players[id].movingRight = true;
+        } else if (directionToMove == "NW") {
+          this.players[id].movingUp = true;
+          this.players[id].movingDown = false;
+          this.players[id].movingLeft = true;
+          this.players[id].movingRight = false;
+        } else if (directionToMove == "NE") {
+          this.players[id].movingUp = true;
+          this.players[id].movingDown = false;
+          this.players[id].movingLeft = false;
+          this.players[id].movingRight = true;
+        } else if (directionToMove == "SW") {
+          this.players[id].movingUp = false;
+          this.players[id].movingDown = true;
+          this.players[id].movingLeft = true;
+          this.players[id].movingRight = false;
+        } else if (directionToMove == "SE") {
+          this.players[id].movingUp = false;
+          this.players[id].movingDown = true;
+          this.players[id].movingLeft = false;
+          this.players[id].movingRight = true;
+        }
+      } else {
+        this.players[id].movingUp = false;
+        this.players[id].movingDown = false;
+        this.players[id].movingLeft = false;
+        this.players[id].movingRight = false;
+      }
+    });
+  }
+
+  rankingUpdate() {
+    ffaRanking = [];
+    Object.keys(this.players).forEach((id) => {
+      this.players[id].age = this.gametime - this.players[id].initTime;
       ffaRanking.push({
-        'name' : this.players[id].name,
-        'time' : this.players[id].age,
-        'color' : this.players[id].color
+        name: this.players[id].name,
+        time: this.players[id].age,
+        color: this.players[id].color,
       });
     });
   }
@@ -459,17 +608,17 @@ class Game {
     });
   }
 
-  addPlayer(socketid,name) {
+  addPlayer(socketid, name) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
     if (!randCell.alive) {
-      this.players[socketid] = new Player(randCell.gridX, randCell.gridY,name);
-      this.players[socketid].initTime=this.gametime;
+      this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
+      this.players[socketid].initTime = this.gametime;
     } else {
-      this.addPlayer(socketid,name);
+      this.addPlayer(socketid, name);
     }
-    if(this.groupName!="FFA"){
-      this.io.to(this.groupName).emit("drawScoreBoard",ranking.slice(0,5));
+    if (this.groupName != "FFA") {
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 5));
     }
   }
 
@@ -513,7 +662,7 @@ class Game {
     let namePosAndCol = {};
     Object.keys(this.players).forEach((key) => {
       namePosAndCol[key] = {
-        name : this.players[key].name,
+        name: this.players[key].name,
         gridX: this.players[key].gridX,
         gridY: this.players[key].gridY,
         color: this.players[key].color,
