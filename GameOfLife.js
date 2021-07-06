@@ -455,29 +455,35 @@ class Game {
       Object.keys(this.players).every((id2) => {
         let x2 = this.players[id2].gridX;
         let y2 = this.players[id2].gridY;
-        if (x2 < x && x2 >= x - 3 && y2 < y && y2 >= y - 3) {
+        let attackrange = 6;
+        if (x2 < x && x2 >= x - attackrange && y2 < y && y2 >= y - attackrange) {
           someoneOnNW = true;
           return false;
-        } else if (x2 > x && x2 <= x + 3 && y2 < y && y2 >= y - 3) {
+        } else if (x2 > x && x2 <= x + attackrange && y2 < y && y2 >= y - attackrange) {
           someoneOnNE = true;
           return false;
-        } else if (x2 < x && x2 >= x - 3 && y2 > y && y2 <= y + 3) {
+        } else if (x2 < x && x2 >= x - attackrange && y2 > y && y2 <= y + attackrange) {
           someoneOnSW = true;
           return false;
-        } else if (x2 > x && x2 <= x + 3 && y2 > y && y2 <= y + 3) {
+        } else if (x2 > x && x2 <= x + attackrange && y2 > y && y2 <= y + attackrange) {
           someoneOnSE = true;
           return false;
         }
         return true;
       });
       if (someoneOnNW) {
-        this.players[id].shootNW = true;
+        this.players[id].pressedNW = true;
       } else if (someoneOnNE) {
-        this.players[id].shootNE = true;
+        this.players[id].pressedNE = true;
       } else if (someoneOnSW) {
-        this.players[id].shootSW = true;
+        this.players[id].pressedSW = true;
       } else if (someoneOnSE) {
-        this.players[id].shootSE = true;
+        this.players[id].pressedSE = true;
+      } else {
+        this.players[id].pressedNW = false;
+        this.players[id].pressedNE = false;
+        this.players[id].pressedSW = false;
+        this.players[id].pressedSE = false;
       }
     });
   }
