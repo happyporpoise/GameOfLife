@@ -8,7 +8,7 @@ const users={};
 //const db = new sqlite3.Database('./rankingBoard.db');
 
 const Game = require('./GameOfLife.js');
-const games = {"FFA" : new Game(io,"FFA",240,240)};
+const games = {"FFA" : new Game(io,"FFA",200,200)};
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
