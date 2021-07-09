@@ -118,4 +118,10 @@ function gameEnd(tag,i){
     document.getElementById('dead-alert').appendChild(rankingButton);
   }
   document.getElementById('dead-alert').style.visibility='visible';
+  document.body.addEventListener("keyup", function (event) {
+    if (event.key === "Enter") {
+      event.preventDefault();
+      redirect(window.ggluser.gameMode);
+    }
+  });
 }

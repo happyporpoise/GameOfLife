@@ -2,7 +2,7 @@ class userControl{
     constructor(){
         this.users={};
         this.pk="name";
-        this.unvalidpk=["","null","false","true","False","True","admin","Null",'RandomBot'];
+        this.unvalidpk=["null","false","true","False","True","admin","Null",'RandomBot'];
         this.requiredFields={isactive:true,socketid:"",gameMode:"FFA"};
     }
 
@@ -17,7 +17,7 @@ class userControl{
     }
 
     checkpk(pk){
-        if(typeof(pk)!="string" || pk.slice(-5)=="(Bot)"){
+        if(!pk || typeof(pk)!="string" || pk.slice(-5)=="(Bot)"){
             return false;
         }
         let ans=true;
