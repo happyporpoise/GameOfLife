@@ -20,8 +20,8 @@
 
   <div class="btn-group2" id="btn-group2">
     <button id="gameResult"></button>
-    <button id="/" onclick="redirect(this.id)">HOME</button>
-    <button id="/single" onclick="redirect(this.id)">RESTART</button>
+    <button id="" onclick="redirect(this.id)">HOME</button>
+    <button id="single" onclick="redirect(this.id)">RESTART</button>
   </div>
 
   <canvas id="myCanvas" style="border:1px solid lightgrey;">
@@ -39,7 +39,7 @@
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
     document.getElementById('btn-group2').style.visibility='hidden';
-    gameSet("SINGLE");
+    setGame("SINGLE");
   </script>
 </body>
 

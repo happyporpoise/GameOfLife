@@ -59,9 +59,9 @@
         <div class="center">
           Game mode<br>
           <div class="btn-group" role="group" aria-label="Basic example">
-            <button type="button" class="btn btn-dark" id="/ffa"
+            <button type="button" class="btn btn-dark" id="FFA"
               onclick="setGameMode(this.id)">&nbsp;&nbsp;&nbsp;FFA&nbsp;&nbsp;&nbsp;</button>
-            <button type="button" class="btn btn-dark" id="/single" onclick="setGameMode(this.id)">SINGLE</button>
+            <button type="button" class="btn btn-dark" id="SINGLE" onclick="setGameMode(this.id)">SINGLE</button>
           </div>
         </div>
       </div>
@@ -73,8 +73,6 @@
           <input type="text" class="form-text-lg" id="usernameInput" name="username" placeholder="ENTER USERNAME" style="text-align:center">
           <br>
           (press enter to spawn)<br>
-          <button id="nameButton" onclick="setUser(() => {redirect(gameMode);})"
-            style="color: transparent; background-color: transparent; border-color: transparent; cursor: default; outline: 0; font-size: 0px;">GGL</button>
         </div>
       </div>
     </div>
@@ -130,43 +128,26 @@
 
 
   <script>
-    //gameSet("FFA");
+    //setGame("FFA");
     // document.body.scrollTop = 0;
     // document.body.style.overflow = 'hidden';
 
     // Get the input field
-    const input = document.getElementById("usernameInput");
 
-    // Execute a function when the user releases a key on the keyboard
-    input.addEventListener("keyup", function (event) {
-      // Number 13 is the "Enter" key on the keyboard
+    document.body.addEventListener("keyup", function (event) {
       if (event.key === "Enter") {
-        // Cancel the default action, if needed
         event.preventDefault();
-        // Trigger the button element with a click
-        document.getElementById("nameButton").click();
+        gameEnter();
       }
     });
 
-    if (window.user.name != "" || window.user.name != undefined) {
-      document.getElementById("nameButton").textContent = window.user.name;
+    if (window.ggluser.name) {
+      document.getElementById("usernameInput").value = window.ggluser.name;
     }
 
+    setGameMode(window.ggluser.gameMode);
+
     function howto() {
-      // document.getElementById("howto").textContent = "W,A,S,D --- Move\r\n";
-      // document.getElementById("howto").textContent += "H,U,I,L --- Shoot a glider\r\n";
-
-      // document.getElementById("howto").textContent += "\r\n";
-      // document.getElementById("howto").textContent += "Cracks\r\n";
-      // document.getElementById("howto").textContent += "You're dead if you step on them\r\n";
-      // document.getElementById("howto").textContent += "FFA -> Black pixels\r\n";
-      // document.getElementById("howto").textContent += "SINGLE -> Bordered squares\r\n";
-
-      // document.getElementById("howto").textContent += "\r\n";
-      // document.getElementById("howto").textContent += "Game Goals\r\n";
-      // document.getElementById("howto").textContent += "FFA -> Live long\r\n";
-      // document.getElementById("howto").textContent += "SINGLE -> Remove the cracks\r\n";
-      // document.getElementById("howto").textContent += "*no score board for FFA yet\r\n";
       let x = document.getElementById("HowToPlay");
       if (x.style.display === "none") {
         x.style.display = "block";
@@ -177,18 +158,14 @@
       }
     }
 
-    let gameMode = "/ffa";
-    document.getElementById("/ffa").style.backgroundColor = "#0099cc";
-    document.getElementById("/single").style.backgroundColor = "#333";
-
     function setGameMode(tag) {
-      gameMode = tag;
-      if (gameMode == "/ffa") {
-        document.getElementById("/ffa").style.backgroundColor = "#0099cc";
-        document.getElementById("/single").style.backgroundColor = "#333";
-      } else if (gameMode == "/single") {
-        document.getElementById("/ffa").style.backgroundColor = "#333";
-        document.getElementById("/single").style.backgroundColor = "#0099cc";
+      window.ggluser.gameMode = tag;
+      if (window.ggluser.gameMode == "FFA") {
+        document.getElementById("FFA").style.backgroundColor = "#0099cc";
+        document.getElementById("SINGLE").style.backgroundColor = "#333";
+      } else if (window.ggluser.gameMode == "SINGLE") {
+        document.getElementById("FFA").style.backgroundColor = "#333";
+        document.getElementById("SINGLE").style.backgroundColor = "#0099cc";
       }
     }
 

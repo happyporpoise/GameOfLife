@@ -49,8 +49,8 @@
   <div class="alert alert-primary" id="dead-alert" style="visibility: hidden;">
     <div class="center">
       <h3><span class="badge bg-warning text-dark" id="gameResult" style="width: 100%;"></span></h3>
-      <button type="button" class="btn btn-primary" id="/" onclick="redirect(this.id)">HOME</button>
-      <button type="button" class="btn btn-primary" id="/ffa" onclick="redirect(this.id)">RESTART</button>
+      <button type="button" class="btn btn-primary" id="" onclick="redirect(this.id)">HOME</button>
+      <button type="button" class="btn btn-primary" id="ffa" onclick="redirect(this.id)">RESTART</button>
     </div>
   </div>
 
@@ -69,7 +69,7 @@
   <script>
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
-    gameSet("FFA");
+    setGame("FFA");
   </script>
 </body>
 

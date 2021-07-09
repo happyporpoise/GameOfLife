@@ -2,16 +2,15 @@ const socket = io();
 socket.on('timeOut',()=>{
   socket.close();
   alert("Your session is timed out");
-  redirect("/");
+  redirect("");
 });
 
-window.user = JSON.parse(window.localStorage.getItem('user'));
+window.ggluser = JSON.parse(window.localStorage.getItem('ggl.user'));
 
-if (window.user === null) {
-  window.user={
-    'id':undefined,
+if (window.ggluser === null) {
+  window.ggluser={
     'name':'',
-    'socketid':socket.id
+    'gameMode':'FFA',
   };
 }
 
@@ -47,73 +46,60 @@ function sendEvent(tag,id){
 }
 
 function redirect(tag){
+  window.localStorage.setItem('ggl.user', JSON.stringify(window.ggluser));
+  window.location.href=window.location.origin+"/"+tag.toLowerCase();
+}
 
-  if(window.user.id==undefined){
+function gameEnter(){
+  window.ggluser.name=document.getElementById("usernameInput").value;
+  if(window.ggluser.name==""){
     alert("Please set your username");
     return;
   };
-  window.localStorage.setItem('user', JSON.stringify(window.user));
-  window.location.href=window.location.origin+tag;
-}
-
-function setUser(callback){
-  let username=document.getElementById("usernameInput").value;
-  if(username==""){username=socket.id.slice(0,6)};
-
-  if(username==window.user.name && window.user.id !=undefined){
+  if(window.ggluser.gameMode!="FFA" && window.ggluser.gameMode!="SINGLE"){
+    alert("Please choose a game mode");
     return;
-  }
-
-  socket.emit("setUser", username ,
-    (response) => {
-      if(response.id!=undefined){
-        window.user=response;
-        document.getElementById("nameButton").textContent=response.name;
-        document.getElementById("usernameInput").value="";
-        callback();
-      }
-      else{
-        alert(`Username ${username} already exists`);
-      }
-  });
+  };
+  redirect(window.ggluser.gameMode)
 }
 
-function gameSet(tag){
-  // Somewhere else
+function setGame(gameMode){
   socket.on('connect', () => {
-    window.user['socketid']=socket.id;
-    window.user['gameType']=tag;
+    console.log(socket.id)
+    window.ggluser['socketid']=socket.id;
+    window.ggluser['gameMode']=gameMode;
 
-    socket.emit("updateUser",window.user,
+    socket.emit("setGame", window.ggluser.name, gameMode,
       (response)=>{
-        if(!response){
-          redirect("/");
+        
+        if(!response || response.status!="SUCCESS"){
+          alert((response.errcode) ? response.errcode : "Uncaught error, please try again later." );
+          redirect("");
         }
-        
-        socket.on("drawScoreBoard", drawScoreBoard);
-        
-        socket.emit("gameSet", tag , window.user.id,
-          (response) => {
-            
-            window.cb = new colorBoard(response.numColumns,response.numRows);;
+        else{
 
-            setupVar(GUI_MODE);
-            
-            socket.on("gameUpdate", processGameUpdate);
+          socket.on("drawScoreBoard", drawScoreBoard);
+          
+          window.cb = new colorBoard(response.numColumns,response.numRows);;
+
+          setupVar(GUI_MODE);
+          
+          socket.on("gameUpdate", processGameUpdate);
             initState();
             startRendering();
             socket.on("dead", () => {
               gameEnd("dead")
             });
-            if(tag=="SINGLE"){
+            if(gameMode=="SINGLE"){
               socket.on("singleClear", (i) => {
                 gameEnd("singleClear",i);
               });
-            }
+          }
 
-            window.addEventListener("keydown", sendEvent("keydown", window.user.id));
-            window.addEventListener("keyup", sendEvent("keyup", window.user.id));
-        });
+          window.addEventListener("keydown", sendEvent("keydown", window.ggluser.name));
+          window.addEventListener("keyup", sendEvent("keyup", window.ggluser.name));
+        }
+
       }
     );
   });
@@ -132,9 +118,4 @@ function gameEnd(tag,i){
     document.getElementById('dead-alert').appendChild(rankingButton);
   }
   document.getElementById('dead-alert').style.visibility='visible';
-              // if (confirm(`You're dead! Restart?`)) {
-              //   redirect("/ffa");
-              // } else {
-              //   redirect("/");
-              // }
 }

@@ -1,9 +1,14 @@
 let myCanvas = document.getElementById("myCanvas");
-let myContext = myCanvas.getContext("2d");
-myCanvas.width = window.innerWidth;
-myCanvas.height = window.innerHeight;
-let xcenter = myCanvas.width / 2;
-let ycenter = myCanvas.height / 2;
+let myContext = null;
+let xcenter = 0;
+let ycenter = 0;
+if(myCanvas){
+  myContext = myCanvas.getContext("2d");
+  myCanvas.width = window.innerWidth;
+  myCanvas.height = window.innerHeight;
+  xcenter = myCanvas.width / 2;
+  ycenter = myCanvas.height / 2;
+}
 
 //let GUI_MODE="PLAIN";
 let GUI_MODE = "PLAIN-NUT";
@@ -369,7 +374,7 @@ function render() {
   const currentState = getCurrentState();
   if ("gametime" in currentState) {
     draw(
-      window.user.socketid,
+      window.ggluser.socketid,
       currentState.gametime,
       currentState.buffer,
       currentState.playerNamePosAndColor
