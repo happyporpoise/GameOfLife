@@ -36,6 +36,16 @@
       text-align: center;
       margin: auto;
     }
+
+    .alert {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      margin: 0;
+      /* background-color: rgba(0, 0, 0, 1.0); */
+      border: none;
+    }
   </style>
 </head>
 
@@ -70,7 +80,8 @@
       <div class="col">
         <div class="center">
           This is the tale of...<br>
-          <input type="text" class="form-text-lg" id="usernameInput" name="username" placeholder="ENTER USERNAME" style="text-align:center">
+          <input type="text" class="form-text-lg" id="usernameInput" name="username" placeholder="ENTER USERNAME"
+            style="text-align:center">
           <br>
           (press enter to spawn)<br>
         </div>
@@ -79,12 +90,12 @@
     <div class="row">
       <div class="col">
         <div class="center">
-          <button type="button" class="btn btn-light btn-sm" id="howto" onclick="howto()">How to play</button>
-          <div id="HowToPlay" style="display: none;">
+          <button type="button" class="btn btn-info btn-sm" id="howto" onclick="howto()">How to play</button>
+          <!-- <div id="HowToPlay" style="display: none;">
             <p>
             <h6>Basic movements</h6>
-            Move with W,A,S,D<br>
-            Shoot gliders with Y,I,H,K<br>
+            Move with <kbd>W</kbd>,<kbd>A</kbd>,<kbd>S</kbd>,<kbd>D</kbd><br>
+            Shoot gliders with <kbd>Y</kbd>,<kbd>I</kbd>,<kbd>H</kbd>,<kbd>K</kbd><br>
             <br>
             <h6>FFA (free-for-all) mode</h6>
             You die if you step on a black cell. <br>
@@ -95,7 +106,7 @@
             Bordered squares are called <em>cracks</em>. <br>
             The goal is to remove all the cracks!<br>
             </p>
-          </div>
+          </div> -->
         </div>
       </div>
     </div>
@@ -105,14 +116,60 @@
           <br>
           <hr style="width:40%; margin: auto;">
           <br>
-          Developed by <a href = "https://www.its.caltech.edu/~spark3/">Sunghyuk Park</a> and Han Gyeol Suh
+          Developed by <a href="https://www.its.caltech.edu/~spark3/">Sunghyuk Park</a> and Han Gyeol Suh
         </div>
       </div>
     </div>
   </div>
   </div>
 
-  <div class="button">
+  <div class="alert alert-info" id="HowToPlay" style="display: none;">
+    <div class="center">
+      <p>
+      <h3>Basic movements</h3>
+      <img src="/static/ggl_howtoplay.png" class="img-fluid" style="max-width: 80%; height: auto;" alt="keyboard controls">
+      <br><br>
+      Move with
+      <table style="display: inline-table;">
+        <tr>
+          <th></th>
+          <th><kbd>W</kbd></th>
+          <th></th>
+        </tr>
+        <tr>
+          <th><kbd>A</kbd></th>
+          <th><kbd>S</kbd></th>
+          <th><kbd>D</kbd></th>
+        </tr>
+      </table>,&nbsp;&nbsp;&nbsp;&nbsp;
+      shoot gliders with 
+      <table style="display:inline-table">
+        <tr>
+          <th><kbd>Y</kbd></th>
+          <th>&nbsp;&nbsp;</th>
+          <th><kbd>I</kbd></th>
+        </tr>
+        <tr>
+          <th><kbd>H</kbd></th>
+          <th>&nbsp;&nbsp;</th>
+          <th><kbd>K</kbd></th>
+        </tr>
+      </table><br><br><br>
+      <h3>Basic rules</h3>
+      The black and white cells in the background evolve according to <a href = "https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's game of life</a>. <br>
+      You die if you step on a black cell. <br>
+      Stay alive as long as possible while attacking others with gliders!<br>
+      <!-- <h6>FFA (free-for-all) mode</h6>
+      You die if you step on a black cell. <br>
+      Stay alive as long as possible<br>
+      while attacking others with gliders!<br>
+      <br>
+      <h6>SINGLE (single-player) mode</h6>
+      Bordered squares are called <em>cracks</em>. <br>
+      The goal is to remove all the cracks!<br> -->
+      </p>
+      <button type="button" class="btn btn-light btn-sm" id="CloseHowToPlay" onclick="closehowto()">Close</button>
+    </div>
   </div>
 
 
@@ -147,15 +204,25 @@
 
     setGameMode(window.ggluser.gameMode);
 
+    // function howto() {
+    //   let x = document.getElementById("HowToPlay");
+    //   if (x.style.display === "none") {
+    //     x.style.display = "block";
+    //     document.getElementById("howto").textContent = "Collapse";
+    //   } else {
+    //     x.style.display = "none";
+    //     document.getElementById("howto").textContent = "How to play";
+    //   }
+    // }
     function howto() {
       let x = document.getElementById("HowToPlay");
-      if (x.style.display === "none") {
-        x.style.display = "block";
-        document.getElementById("howto").textContent = "Collapse";
-      } else {
-        x.style.display = "none";
-        document.getElementById("howto").textContent = "How to play";
-      }
+      x.style.display = "block";
+      document.getElementById("howto").textContent = "Collapse";
+    }
+    function closehowto() {
+      let x = document.getElementById("HowToPlay");
+      x.style.display = "none";
+      document.getElementById("howto").textContent = "How to play";
     }
 
     function setGameMode(tag) {

@@ -9,6 +9,10 @@ if(myCanvas){
   xcenter = myCanvas.width / 2;
   ycenter = myCanvas.height / 2;
 }
+let minimap = document.getElementById("minimap");
+if (minimap) {
+  minimapContext = minimap.getContext("2d");
+}
 
 //let GUI_MODE="PLAIN";
 let GUI_MODE = "PLAIN-NUT";
@@ -355,6 +359,12 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
   });
 
   //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
+
+  minimapContext.fillStyle = "#ffffff";
+  minimapContext.fillRect(0, 0, minimap.width, minimap.height);
+  // minimapContext.fillStyle = "#000000";
+  minimapContext.fillStyle = gamePlayer.color;
+  minimapContext.fillRect(minimap.width*gamePlayer.gridX/window.cb.numColumns, minimap.height*gamePlayer.gridY/window.cb.numRows, 3, 3);
 }
 
 function update() {

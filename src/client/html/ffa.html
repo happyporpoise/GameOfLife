@@ -12,7 +12,7 @@
       position: absolute;
       top: 0;
       right: 0;
-      width: 13%;
+      width: 200px;
     }
 
     .list-group-item {
@@ -59,6 +59,12 @@
         style="width:100%;">Scoreboard</span></li>
     <!-- <li class="list-group-item"><span class="badge rounded-pill bg-info text-dark" style = "width:100%;" id="clock1">Time:0s</span></li> -->
   </ul>
+
+  <div class="alert alert-primary" style="width: 150px; height: 150px; top: 100%; left: 100%; transform: translate(-110%, -110%); padding: 10px;">
+    <canvas id="minimap" width="130" height="130" style="border:1px solid lightgrey; margin: 0px;">
+      Your browser does not support the HTML5 canvas tag.
+    </canvas>
+  </div>
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/client/download.js"></script>
