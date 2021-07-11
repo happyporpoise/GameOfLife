@@ -78,6 +78,7 @@ function setGame(gameMode) {
         );
         redirect("");
       } else {
+
         socket.on("drawScoreBoard", drawScoreBoard);
 
         window.cb = new colorBoard(response.numColumns, response.numRows);
@@ -91,8 +92,8 @@ function setGame(gameMode) {
           gameEnd("dead");
         });
         if (gameMode == "SINGLE") {
-          socket.on("singleClear", (i) => {
-            gameEnd("singleClear", i);
+          socket.on("singleClear", (i, time) => {
+            gameEnd("singleClear", i, time);
           });
         }
 
@@ -109,39 +110,48 @@ function setGame(gameMode) {
   });
 }
 
-function gameEnd(tag, i) {
+function gameEnd(tag, i, time) {
   socket.close();
   // if (tag == "dead") {
   //   document.getElementById("gameResult").textContent = "Game over 😢";
   // }
-  if (tag == "singleClear") {
-    document.getElementById("gameResult").textContent = "CLEAR!";
-    const rankingButton = document.createElement("button");
-    rankingButton.textContent = "RANKING #" + (i + 1);
-    document.getElementById("dead-alert").appendChild(rankingButton);
-  }
+  
   // document.getElementById("dead-alert").style.display = "block";
   let x = document.getElementById("menu");
   let y = document.getElementById("menuCenter");
   let z = document.getElementById("menuButtonGroup");
   x.style.display = "block";
   document.getElementById("optionMenu").style.display = "none";
+  
   let br = document.createElement("br");
   y.insertBefore(br, y.firstChild);
+
   let restartButton = document.createElement("button");
   restartButton.className = "btn btn-success";
   restartButton.type = "button";
   restartButton.style.width = "100%";
   restartButton.textContent = "RESTART ↺";
-  restartButton.onclick = function(){redirect("ffa")};
+  restartButton.onclick = function(){redirect(window.ggluser.gameMode)};
   y.insertBefore(restartButton, y.firstChild);
+
+  if(tag == "singleClear"){
+    let deadalerth3 = document.createElement("h3");
+    let deadalert = document.createElement("span");
+    deadalert.className = "badge bg-warning text-dark";
+    deadalert.style.width = "100%";
+    deadalert.textContent = `(#${i}) `+(150+time/10).toFixed(1)+"s";
+    deadalerth3.appendChild(deadalert);
+    y.insertBefore(deadalerth3, y.firstChild);
+  }
+
   let deadalerth3 = document.createElement("h3");
   let deadalert = document.createElement("span");
   deadalert.className = "badge bg-warning text-dark";
   deadalert.style.width = "100%";
-  deadalert.textContent = "Game over 😢";
+  deadalert.textContent = (tag == "singleClear") ? "Game clear 🥳" :"Game over 😢";
   deadalerth3.appendChild(deadalert);
   y.insertBefore(deadalerth3, y.firstChild);
+
   y.removeChild(document.getElementById("CloseMenu"));
   y.removeChild(document.getElementById("gameMenuTitle"));
   y.removeChild(y.lastChild);

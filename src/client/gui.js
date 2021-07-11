@@ -48,7 +48,6 @@ class colorBoard {
 
     this.maxDecay = 0;
     this.color_list = [];
-    console.log(this);
   }
 
   static hexToRgb(hex) {
@@ -271,6 +270,7 @@ function decodeBytes(buffer, cb) {
 let initTime = 0;
 
 function drawScoreBoard(ranking) {
+  console.log("1")
   const listgroup = document.getElementById("leaderBoard");
   const numChildren = listgroup.children.length - 1;
   for (let i = 1; i <= numChildren; i++) {
@@ -359,12 +359,13 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
   });
 
   //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
-
-  minimapContext.fillStyle = "#ffffff";
-  minimapContext.fillRect(0, 0, minimap.width, minimap.height);
-  // minimapContext.fillStyle = "#000000";
-  minimapContext.fillStyle = gamePlayer.color;
-  minimapContext.fillRect(minimap.width*gamePlayer.gridX/window.cb.numColumns, minimap.height*gamePlayer.gridY/window.cb.numRows, 3, 3);
+  if(minimap){
+    minimapContext.fillStyle = "#ffffff";
+    minimapContext.fillRect(0, 0, minimap.width, minimap.height);
+    // minimapContext.fillStyle = "#000000";
+    minimapContext.fillStyle = gamePlayer.color;
+    minimapContext.fillRect(minimap.width*gamePlayer.gridX/window.cb.numColumns, minimap.height*gamePlayer.gridY/window.cb.numRows, 3, 3);  
+  }
 }
 
 function update() {

@@ -55,7 +55,7 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = Math.random() > 0.9;
+    this.alive = Math.random() > 0.9;// 0.9;
   }
 }
 
@@ -267,7 +267,7 @@ class Game {
       ranking = ranking.slice(0, 100);
       saveRanking("ranking.txt");
       this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 15));
-      this.io.to(this.groupName).emit("singleClear", i);
+      this.io.to(this.groupName).emit("singleClear", i, this.gametime);
       delete this.players[this.groupName];
     }
 
@@ -1259,6 +1259,7 @@ class Game {
       }
     });
   }
+
   updateCoolTime() {
     Object.keys(this.players).forEach((id) => {
       this.players[id].gliderCoolTimeLeft = Math.max(
@@ -1278,7 +1279,7 @@ class Game {
       this.addPlayer(socketid, name);
     }
     if (this.groupName != "FFA") {
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 5));
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 10));
     }
   }
 

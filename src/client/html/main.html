@@ -112,8 +112,11 @@
     </div>
     <div class="alert alert-warning" id="warning" style="display: none;">
       <div class="center">
-        <b>WARNING:</b> The single mode is still under construction, so it may not function properly. <br>
-        We are planning on making ~30 stages consisting of various missions for the single mode game. 
+        <b>WARNING:</b> The single mode is still under construction.
+        There are two levels for now,<br><b>level 0: practice</b> and <b>level 1: time record,</b><br>and we are working on making ~30 stages with various missions which will be added in the future.<br> 
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level0')" >level 0</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level1')">level 1</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('Back')">Back</button>
       </div>
     </div>
     <div class="row">
@@ -122,7 +125,7 @@
           <br>
           <hr style="width:40%; margin: auto;">
           <br>
-          Developed by <a href="https://www.its.caltech.edu/~spark3/">Sunghyuk Park</a> and Han Gyeol Suh
+          Developed by <a href="https://www.its.caltech.edu/~spark3/">Sunghyuk Park</a> and HG Suh
         </div>
       </div>
     </div>
@@ -239,9 +242,17 @@
         document.getElementById("FFA").style.backgroundColor = "#333";
         document.getElementById("SINGLE").style.backgroundColor = "#0099cc";
         document.getElementById("warning").style.display = "block";
-      }
+      } 
     }
 
+    function singleLevels(tag){
+      if(tag=="Back"){
+        document.getElementById("warning").style.display = "none";
+        return;
+      };
+      window.ggluser.level=tag
+      gameEnter();
+    }
   </script>
 </body>
 

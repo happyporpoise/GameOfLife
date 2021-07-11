@@ -6,39 +6,9 @@
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="/src/client/index2.css">
-
-  <style>
-    .list-group {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 200px;
-    }
-
-    .list-group-item {
-      background-color: transparent;
-      border: none;
-      height: 25px;
-    }
-
-    .alert {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      margin: 0;
-      border: none;
-    }
-
-    .center {
-      text-align: center;
-      margin: auto;
-    }
-  </style>
-
 </head>
 
-<body>
+<body style="background-color : #ddd ; ">
   <ul id="messages"></ul>
 
   <canvas id="myCanvas" style="border:1px solid lightgrey;">
@@ -140,7 +110,14 @@
   <script>
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
-    setGame("FFA");
+    setGame(window.ggluser.gameMode);
+
+    document.body.addEventListener("keyup", function (event) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        openMenu();
+      }
+    });
 
     function openMenu() {
       let x = document.getElementById("menu");

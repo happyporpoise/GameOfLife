@@ -23,7 +23,7 @@ app.get('/ffa', (req, res) => {
 });
 
 app.get('/single', (req, res) => {
-  res.sendFile(__dirname + '/src/client/html/single.html');
+  res.sendFile(__dirname + '/src/client/html/ffa.html');
 });
 
 app.get('/src/client/:fileName', function (req, res) {
@@ -96,14 +96,15 @@ io.on('connection', (socket) => {
       if(gameMode=="SINGLE"){
         socket.join(socket.id);
         games[socket.id]=new Game(io,socket.id,50,50);
-        games[socket.id].addPlayer(newuser['socketid'],newuser['name']);
-        newuser["chatroom"]=socket.id;
+        //callback must be called before addPlayer because client will be ready to hear only after success callback
         callback({
           id: newuser[usercon.pk],
           numColumns: games[socket.id].numColumns,
           numRows: games[socket.id].numRows,
           status: "SUCCESS"
         });
+        games[socket.id].addPlayer(newuser['socketid'],newuser['name']);
+        newuser["chatroom"]=socket.id;
       }
     }
   });
