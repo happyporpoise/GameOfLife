@@ -2,10 +2,11 @@
 <html>
 
 <head>
-  <title>TheGameofGameofLife</title>
+  <title>GGL</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="/src/client/index2.css">
+  <link rel="icon" href="/static/glider.png">
   <style>
     .row>div {
       padding: 20px;
@@ -55,6 +56,7 @@
     <div class="row">
       <div class="col">
         <div class="center">
+          <img src="/static/ggl_logo.png" class="img-fluid" style="max-width: 70%; height: auto; margin-bottom: 10px;" alt="ggl_logo">
           <h1>
             The Game of Game of Life
           </h1>
@@ -110,13 +112,19 @@
         </div>
       </div>
     </div>
-    <div class="alert alert-warning" id="warning" style="display: none;">
+    <div class="alert alert-warning" id="warning" style="display: none; z-index: 100;">
       <div class="center">
         <b>WARNING:</b> The single mode is still under construction.
         There are two levels for now,<br><b>level 0: practice</b> and <b>level 1: time record,</b><br>and we are working on making ~30 stages with various missions which will be added in the future.<br> 
+<<<<<<< HEAD
         <button type="button" class="btn btn-info btn-sm" onclick="singleLevels(0)" >level 0</button>
         <button type="button" class="btn btn-info btn-sm" onclick="singleLevels(1)">level 1</button>
         <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('Back')">Back</button>
+=======
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level0')" >level 0</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level1')">level 1</button>
+        <button type="button" class="btn btn-light btn-sm" onclick="singleLevels('Back')">Close</button>
+>>>>>>> 18b1bfdc7b4ebc72d8698922fa8ae2c5585c6a1c
       </div>
     </div>
     <div class="row">
@@ -235,12 +243,12 @@
     function setGameMode(tag) {
       window.ggluser.gameMode = tag;
       if (window.ggluser.gameMode == "FFA") {
-        document.getElementById("FFA").style.backgroundColor = "#0099cc";
+        document.getElementById("FFA").style.backgroundColor = `hsl(166,100%,40%)`;
         document.getElementById("SINGLE").style.backgroundColor = "#333";
         document.getElementById("warning").style.display = "none";
       } else if (window.ggluser.gameMode == "SINGLE") {
         document.getElementById("FFA").style.backgroundColor = "#333";
-        document.getElementById("SINGLE").style.backgroundColor = "#0099cc";
+        document.getElementById("SINGLE").style.backgroundColor = `hsl(195,100%,40%)`;
         document.getElementById("warning").style.display = "block";
       } 
     }
