@@ -132,7 +132,7 @@ function gameEnd(tag, i) {
   restartButton.className = "btn btn-success";
   restartButton.type = "button";
   restartButton.style.width = "100%";
-  restartButton.textContent = "RESTART";
+  restartButton.textContent = "RESTART ↺";
   restartButton.onclick = function(){redirect("ffa")};
   y.insertBefore(restartButton, y.firstChild);
   let deadalerth3 = document.createElement("h3");
