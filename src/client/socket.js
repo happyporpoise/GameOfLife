@@ -144,6 +144,8 @@ function gameEnd(tag, i) {
   y.insertBefore(deadalerth3, y.firstChild);
   y.removeChild(document.getElementById("CloseMenu"));
   y.removeChild(document.getElementById("gameMenuTitle"));
+  y.removeChild(y.lastChild);
+  y.removeChild(y.lastChild);
 
 
 

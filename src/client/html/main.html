@@ -110,6 +110,12 @@
         </div>
       </div>
     </div>
+    <div class="alert alert-warning" id="warning" style="display: none;">
+      <div class="center">
+        <b>WARNING:</b> The single mode is still under construction, so it may not function properly. <br>
+        We are planning on making ~30 stages consisting of various missions for the single mode game. 
+      </div>
+    </div>
     <div class="row">
       <div class="col">
         <div class="center">
@@ -228,9 +234,11 @@
       if (window.ggluser.gameMode == "FFA") {
         document.getElementById("FFA").style.backgroundColor = "#0099cc";
         document.getElementById("SINGLE").style.backgroundColor = "#333";
+        document.getElementById("warning").style.display = "none";
       } else if (window.ggluser.gameMode == "SINGLE") {
         document.getElementById("FFA").style.backgroundColor = "#333";
         document.getElementById("SINGLE").style.backgroundColor = "#0099cc";
+        document.getElementById("warning").style.display = "block";
       }
     }
 
