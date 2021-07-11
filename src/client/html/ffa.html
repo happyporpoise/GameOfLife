@@ -27,7 +27,6 @@
       left: 50%;
       transform: translate(-50%, -50%);
       margin: 0;
-      background-color: rgba(0, 0, 0, 0.5);
       border: none;
     }
 
@@ -46,25 +45,91 @@
     Your browser does not support the HTML5 canvas tag.
   </canvas>
 
-  <div class="alert alert-primary" id="dead-alert" style="visibility: hidden;">
-    <div class="center">
-      <h3><span class="badge bg-warning text-dark" id="gameResult" style="width: 100%;"></span></h3>
-      <button type="button" class="btn btn-primary" id="" onclick="redirect(this.id)">HOME</button>
-      <button type="button" class="btn btn-primary" id="ffa" onclick="redirect(this.id)">RESTART</button>
-    </div>
-  </div>
-
   <ul class="list-group list-group-flush" id="leaderBoard">
     <li class="list-group-item"><span class="badge rounded-pill bg-secondary"
         style="width:100%;">Scoreboard</span></li>
     <!-- <li class="list-group-item"><span class="badge rounded-pill bg-info text-dark" style = "width:100%;" id="clock1">Time:0s</span></li> -->
   </ul>
 
-  <div class="alert alert-primary" style="width: 150px; height: 150px; top: 100%; left: 100%; transform: translate(-110%, -110%); padding: 10px;">
+  <div class="alert alert-primary" style="width: 150px; height: 150px; top: 100%; left: 100%; transform: translate(-110%, -110%); padding: 10px; background-color: rgba(0, 0, 0, 0.5);">
     <canvas id="minimap" width="130" height="130" style="border:1px solid lightgrey; margin: 0px;">
       Your browser does not support the HTML5 canvas tag.
     </canvas>
   </div>
+
+  <div style="position: absolute; top: 0%; left: 0%; margin: 10px;">
+    <button type="button" class="btn btn-outline-primary" onclick="openMenu()">&#x2699;</button>
+  </div>
+
+  <div class = "alert alert-primary" id="menu" style="background-color: rgba(0, 0, 0, 0.5); display: none; width: 200px;">
+    <div class="center" id="menuCenter">
+      <h3 id="gameMenuTitle"><span class = "badge bg-light text-dark" style = "width: 100%">Game menu</span></h3>
+      <div class="btn-group-vertical" role="group" id="menuButtonGroup" style = "width: 100%;">
+        <button type="button" class="btn btn-primary" id="" onclick="redirect(this.id)">HOME &#x1F3E0;</button>
+        <button type="button" class="btn btn-info" onclick="howto()">How to play</button>
+        <button type="button" class="btn btn-dark" onclick="openOptions()">Options</button>
+      </div><br><br>
+      <button type="button" class="btn btn-light btn-sm" id="CloseMenu" onclick="closeMenu()">Close</button>
+    </div>
+  </div>
+
+  <div class = "alert alert-dark" id="optionMenu" style = "display: none;">
+    <div class="center">
+      This is an option menu. <br>
+      We will add options to change keyboard control <br>
+      and the design/color scheme of the cells! <br>
+      <button type="button" class="btn btn-light btn-sm" onclick="closeOptions()">Close</button>
+    </div>
+  </div>
+
+  <div class="alert alert-info" id="HowToPlay" style="display: none;">
+    <div class="center">
+      <p>
+      <h3>Basic movements</h3>
+      <img src="/static/ggl_howtoplay.png" class="img-fluid" style="max-width: 80%; height: auto;" alt="keyboard controls">
+      <br><br>
+      Move with
+      <table style="display: inline-table;">
+        <tr>
+          <th></th>
+          <th><kbd>W</kbd></th>
+          <th></th>
+        </tr>
+        <tr>
+          <th><kbd>A</kbd></th>
+          <th><kbd>S</kbd></th>
+          <th><kbd>D</kbd></th>
+        </tr>
+      </table>,&nbsp;&nbsp;&nbsp;&nbsp;
+      shoot gliders with 
+      <table style="display:inline-table">
+        <tr>
+          <th><kbd>Y</kbd></th>
+          <th>&nbsp;&nbsp;</th>
+          <th><kbd>I</kbd></th>
+        </tr>
+        <tr>
+          <th><kbd>H</kbd></th>
+          <th>&nbsp;&nbsp;</th>
+          <th><kbd>K</kbd></th>
+        </tr>
+      </table><br><br><br>
+      <h3>Basic rules</h3>
+      The black and white cells in the background evolve according to <a href = "https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's game of life</a>. <br>
+      You die if you step on a black cell. <br>
+      Stay alive as long as possible while attacking others with gliders!<br>
+      </p>
+      <button type="button" class="btn btn-light btn-sm" id="CloseHowToPlay" onclick="closehowto()">Close</button>
+    </div>
+  </div>
+
+  <!-- <div class="alert alert-primary" id="dead-alert" style="background-color: rgba(0, 0, 0, 0.5); display: none;">
+    <div class="center">
+      <h3><span class="badge bg-warning text-dark" id="gameResult" style="width: 100%;"></span></h3>
+      <button type="button" class="btn btn-primary" id="" onclick="redirect(this.id)">HOME</button>
+      <button type="button" class="btn btn-primary" id="ffa" onclick="redirect(this.id)">RESTART</button>
+    </div>
+  </div> -->
 
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/client/download.js"></script>
@@ -76,6 +141,39 @@
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
     setGame("FFA");
+
+    function openMenu() {
+      let x = document.getElementById("menu");
+      if (x.style.display == "none") {
+        x.style.display = "block";
+      } else if (x.style.display == "block") {
+        x.style.display = "none";
+      }
+    }
+    function closeMenu() {
+      let x = document.getElementById("menu");
+      x.style.display = "none";
+    }
+    function howto() {
+      let x = document.getElementById("HowToPlay");
+      x.style.display = "block";
+    }
+    function closehowto() {
+      let x = document.getElementById("HowToPlay");
+      x.style.display = "none";
+    }
+    function openOptions() {
+      let x = document.getElementById("menu");
+      x.style.display = "none";
+      let y = document.getElementById("optionMenu");
+      y.style.display = "block";
+    }
+    function closeOptions() {
+      let x = document.getElementById("menu");
+      x.style.display = "block";
+      let y = document.getElementById("optionMenu");
+      y.style.display = "none";
+    }
 
   </script>
 </body>
