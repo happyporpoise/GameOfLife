@@ -1,4 +1,4 @@
-function cellsAtPosition(x, y, cells) {
+export function cellsAtPosition(x, y, cells) {
   let shiftedCells = [];
   for (let i = 0; i < cells.length; i++) {
     shiftedCells.push([cells[i][0] + x, cells[i][1] + y]);

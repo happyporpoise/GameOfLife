@@ -25,6 +25,7 @@ const Cellwidth = 15;
 const Cellheight = 15;
 const Playerwidth = 15;
 const Playerheight = 15;
+const minimapPixel = 130/150;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -34,6 +35,13 @@ class colorBoard {
   constructor(numColumns, numRows) {
     this.numColumns = numColumns;
     this.numRows = numRows;
+
+    if(minimap){
+      minimap.width = numColumns*minimapPixel;
+      minimap.height = numRows*minimapPixel;
+      document.getElementById("minimapDiv").style.width = (minimap.width + 20)+"px"
+      document.getElementById("minimapDiv").style.height = (minimap.height + 20)+"px"
+    }
 
     this.cellAlive = new Array(-Math.floor((-numColumns * numRows) / 32) * 32);
 
@@ -270,13 +278,16 @@ function decodeBytes(buffer, cb) {
 let initTime = 0;
 
 function drawScoreBoard(ranking) {
-  console.log("1")
   const listgroup = document.getElementById("leaderBoard");
   const numChildren = listgroup.children.length - 1;
   for (let i = 1; i <= numChildren; i++) {
     listgroup.removeChild(listgroup.children[listgroup.children.length - 1]);
   }
-
+  
+  if(window.ggluser.gameMode="SINGLE"){
+    ranking.unshift({'name':window.ggluser.name,'time':0,'color':"green"});
+  }
+  
   for (let i = 0; i < ranking.length; i++) {
     let newListItem = document.createElement("li");
     newListItem.className = "list-group-item";
@@ -299,6 +310,8 @@ function drawScoreBoard(ranking) {
     // newbadgeContent.textContent =
     //   "\t" + ranking[i].name + "\t-\t" + (ranking[i].time / 10).toFixed(1);
   }
+
+  
 }
 
 function draw(id, _gametime, buffer, playerNamePosAndColor) {

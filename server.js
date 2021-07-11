@@ -8,7 +8,7 @@ const port = process.env.PORT || 3000;
 const userControl = require( "./users.js");
 const usercon = new userControl();
 const Game = require('./GameOfLife.js');
-const games = {"FFA" : new Game(io,"FFA",200,200)};
+const games = {"FFA" : new Game(io,"FFA","FFA",200,200)};
 
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
@@ -69,19 +69,25 @@ io.on('connection', (socket) => {
       });
     }
     else{
+      
+      gameMode=gameMode.split(":");
+
       let newuser = usercon.addUser({
         "name" : name,
         'gameMode':gameMode,
         'socketid':socket.id
       });
+
       if(!newuser){
         callback({
           id: name,
           status: "FAIL",
           errcode: `Player ${name} is not a valid name.`
         });
+        return;
       }
-      if(gameMode=="FFA"){
+
+      if(gameMode[0]=="FFA"){     
         socket.join("FFA");
         games['FFA'].addPlayer(newuser['socketid'],newuser['name']);
         newuser["chatroom"]="FFA";
@@ -91,11 +97,12 @@ io.on('connection', (socket) => {
           numRows: games['FFA'].numRows,
           status: "SUCCESS",
         });
+        return;
       }
 
-      if(gameMode=="SINGLE"){
+      if(gameMode[0]=="SINGLE"){
         socket.join(socket.id);
-        games[socket.id]=new Game(io,socket.id,50,50);
+        games[socket.id]=new Game(io,socket.id,gameMode,50,50);
         //callback must be called before addPlayer because client will be ready to hear only after success callback
         callback({
           id: newuser[usercon.pk],
@@ -105,6 +112,7 @@ io.on('connection', (socket) => {
         });
         games[socket.id].addPlayer(newuser['socketid'],newuser['name']);
         newuser["chatroom"]=socket.id;
+        return;
       }
     }
   });

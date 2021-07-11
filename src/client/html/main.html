@@ -114,8 +114,8 @@
       <div class="center">
         <b>WARNING:</b> The single mode is still under construction.
         There are two levels for now,<br><b>level 0: practice</b> and <b>level 1: time record,</b><br>and we are working on making ~30 stages with various missions which will be added in the future.<br> 
-        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level0')" >level 0</button>
-        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level1')">level 1</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels(0)" >level 0</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels(1)">level 1</button>
         <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('Back')">Back</button>
       </div>
     </div>
@@ -250,7 +250,7 @@
         document.getElementById("warning").style.display = "none";
         return;
       };
-      window.ggluser.level=tag
+      window.ggluser.singlelevel=parseInt(tag);
       gameEnter();
     }
   </script>

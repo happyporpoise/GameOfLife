@@ -1,5 +1,7 @@
 "use strict";
 
+//import { cellsAtPosition } from './Library.js';
+
 const fs = require("fs");
 let ranking = JSON.parse(
   fs.readFileSync(
@@ -92,13 +94,15 @@ class Player {
 }
 
 class Game {
-  constructor(_io, groupName, numColumns, numRows) {
+  constructor(_io, groupName, gameMode, numColumns, numRows) {
     this.numColumns = numColumns;
     this.numRows = numRows;
 
     this.mapSum = true;
 
+    //gameMode is a literally game mode(eg SINGLE:12) and groupName is the chat room id for the io
     this.groupName = groupName;
+    this.gameMode = gameMode;
     this.gametime = 0;
     this.io = _io;
     this.sockets = {};
@@ -111,7 +115,7 @@ class Game {
     this.shouldSendUpdate = false;
 
     this.gameObjects = []; // array of Cells
-    this.createGrid();
+    this.createGrid(gameMode,numColumns,numRows);
 
     this.buffer = new ArrayBuffer(
       -Math.floor((-this.numColumns * this.numRows) / 32) * 4
@@ -149,11 +153,22 @@ class Game {
     this.checkPlayerIsAlive();
   }
 
-  createGrid() {
-    for (let y = 0; y < this.numRows; y++) {
-      for (let x = 0; x < this.numColumns; x++) {
+  createGrid(gameMode,numColumns,numRows) {
+    for (let y = 0; y < numRows; y++) {
+      for (let x = 0; x < numColumns; x++) {
         this.gameObjects.push(new Cell(x, y));
       }
+    }
+    if(gameMode[0]!="SINGLE"){ return ; }
+    let level=parseInt(gameMode[1]);
+    if(level==0){
+      this.gameObjects.forEach((cell)=>{
+        cell.alive=false;
+      })
+      this.gameObjects[this.gridToIndex(0, 0)].alive=true;
+      this.gameObjects[this.gridToIndex(1, 0)].alive=true;
+      this.gameObjects[this.gridToIndex(0, 1)].alive=true;
+      this.gameObjects[this.gridToIndex(1, 1)].alive=true;
     }
   }
 

@@ -3,7 +3,7 @@ class userControl{
         this.users={};
         this.pk="name";
         this.unvalidpk=["null","false","true","False","True","admin","Null",'RandomBot'];
-        this.requiredFields={isactive:true,socketid:"",gameMode:"FFA"};
+        this.requiredFields={isactive:true,socketid:"",gameMode:["FFA"]};
     }
 
     exists(key,value){
