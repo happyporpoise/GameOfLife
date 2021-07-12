@@ -25,6 +25,7 @@ const Cellwidth = 15;
 const Cellheight = 15;
 const Playerwidth = 15;
 const Playerheight = 15;
+const minimapPixel = 0.9;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -34,6 +35,13 @@ class colorBoard {
   constructor(numColumns, numRows) {
     this.numColumns = numColumns;
     this.numRows = numRows;
+
+    if(minimap){
+      minimap.width = numColumns*minimapPixel;
+      minimap.height = numRows*minimapPixel;
+      document.getElementById("minimapDiv").style.width = (minimap.width + 20)+"px"
+      document.getElementById("minimapDiv").style.height = (minimap.height + 20)+"px"
+    }
 
     this.cellAlive = new Array(-Math.floor((-numColumns * numRows) / 32) * 32);
 
@@ -199,6 +207,20 @@ class colorBoard {
             myContext.fillRect(newx, newy, Playerwidth, Playerheight);
         }
         break;
+      
+        case "BACKGROUND":
+          switch (tag) {
+            case "cellAlive":
+            case "cellDead":
+              //myContext.fillStyle = tag == "cellAlive" ? "#595959" : "#f2f2f2";
+              myContext.fillStyle = tag == "cellAlive" ? "rgba(0,0,0,0.12)" : "transparent";
+              myContext.fillRect(newx, newy, Cellwidth, Cellheight);
+              break;
+            case "player":
+              myContext.fillStyle = "transparent";
+              myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+          }
+          break;
 
       case "SPACEDECAY":
         switch (tag) {
@@ -216,6 +238,9 @@ class colorBoard {
   }
 
   drawPlayer(x, y, color, username) {
+    if(GUI_MODE=="BACKGROUND"){
+      return
+    }
     let newx =
       mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
       Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
@@ -228,9 +253,6 @@ class colorBoard {
       myContext.font = "13px Arial";
       myContext.textAlign = "center";
       myContext.fillText(username, newx + Cellwidth/2, newy - Cellheight/4);
-      // myContext.strokeStyle = "black";
-      // myContext.lineWidth = 0.1;
-      // myContext.strokeText(username, newx + Cellwidth/2, newy - Cellheight/4);
   }
 }
 
@@ -270,13 +292,16 @@ function decodeBytes(buffer, cb) {
 let initTime = 0;
 
 function drawScoreBoard(ranking) {
-  console.log("1")
   const listgroup = document.getElementById("leaderBoard");
   const numChildren = listgroup.children.length - 1;
   for (let i = 1; i <= numChildren; i++) {
     listgroup.removeChild(listgroup.children[listgroup.children.length - 1]);
   }
-
+  
+  if(window.ggluser.gameMode=="SINGLE"){
+    ranking.unshift({'name':window.ggluser.name,'time':0,'color':"green"});
+  }
+  
   for (let i = 0; i < ranking.length; i++) {
     let newListItem = document.createElement("li");
     newListItem.className = "list-group-item";
@@ -299,6 +324,8 @@ function drawScoreBoard(ranking) {
     // newbadgeContent.textContent =
     //   "\t" + ranking[i].name + "\t-\t" + (ranking[i].time / 10).toFixed(1);
   }
+
+  
 }
 
 function draw(id, _gametime, buffer, playerNamePosAndColor) {
@@ -309,11 +336,14 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
 
   if (initTime == 0) initTime = _gametime;
 
+  if(GUI_MODE!="BACKGROUND" && window.ggluser.gameMode=="SINGLE"){
+    document.getElementById("leaderBoard").children[1].children[0].children[1].textContent="\t-\t" + (_gametime / 10).toFixed(1);
+  }
+
   // document.getElementById("clock1").textContent =
   //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
 
   decodeBytes(buffer, window.cb);
-
   if (id in playerNamePosAndColor) {
     gamePlayer = playerNamePosAndColor[id];
   }

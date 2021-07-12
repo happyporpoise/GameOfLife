@@ -9,6 +9,7 @@ window.ggluser = JSON.parse(window.localStorage.getItem("ggl.user"));
 
 if (window.ggluser === null) {
   window.ggluser = {
+    singlelevel: 0,
     name: "",
     gameMode: "FFA",
   };
@@ -63,11 +64,22 @@ function gameEnter() {
   redirect(window.ggluser.gameMode);
 }
 
-function setGame(gameMode) {
+function setGame() {
   socket.on("connect", () => {
+    
     console.log(socket.id);
+    
     window.ggluser["socketid"] = socket.id;
-    window.ggluser["gameMode"] = gameMode;
+    let gameMode= window.ggluser["gameMode"];
+    if(gameMode=="SINGLE" && !window.ggluser.singlelevel){
+      window.ggluser.singlelevel=0;
+    }
+    window.localStorage.setItem("ggl.user", JSON.stringify(window.ggluser));
+
+    if(gameMode=="SINGLE"){
+      gameMode+=":"+window.ggluser.singlelevel;
+    }
+    console.log(gameMode);
 
     socket.emit("setGame", window.ggluser.name, gameMode, (response) => {
       if (!response || response.status != "SUCCESS") {
@@ -78,7 +90,6 @@ function setGame(gameMode) {
         );
         redirect("");
       } else {
-
         socket.on("drawScoreBoard", drawScoreBoard);
 
         window.cb = new colorBoard(response.numColumns, response.numRows);
@@ -91,7 +102,7 @@ function setGame(gameMode) {
         socket.on("dead", () => {
           gameEnd("dead");
         });
-        if (gameMode == "SINGLE") {
+        if (gameMode.slice(0,6) == "SINGLE") {
           socket.on("singleClear", (i, time) => {
             gameEnd("singleClear", i, time);
           });
@@ -139,7 +150,7 @@ function gameEnd(tag, i, time) {
     let deadalert = document.createElement("span");
     deadalert.className = "badge bg-warning text-dark";
     deadalert.style.width = "100%";
-    deadalert.textContent = `(#${i}) `+(150+time/10).toFixed(1)+"s";
+    deadalert.textContent = `(#${i+1}) `+(time/10).toFixed(1)+"s";
     deadalerth3.appendChild(deadalert);
     y.insertBefore(deadalerth3, y.firstChild);
   }
@@ -165,4 +176,24 @@ function gameEnd(tag, i, time) {
       redirect(window.ggluser.gameMode);
     }
   });
+}
+
+function listenBG(){
+  socket.on("connect", (response) => {
+    socket.emit("listenBG", (response) => {
+
+      window.ggluser["socketid"] = response.id
+      //window.ggluser["socketid"] = "Dodger (Bot)"
+      console.log(response.id)
+      window.cb = new colorBoard(response.numColumns, response.numRows);
+      
+      GUI_MODE="BACKGROUND";
+      setupVar(GUI_MODE);
+
+      socket.on("gameUpdate", processGameUpdate);
+
+      initState();
+      startRendering();
+    })
+  })
 }

@@ -22,8 +22,7 @@
     html,
     body {
       height: 100%;
-      overflow: scroll;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     ::-webkit-scrollbar {
@@ -51,6 +50,28 @@
 </head>
 
 <body>
+
+  <canvas id="myCanvas" style="border:0px solid lightgrey;z-index:-1;">
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+
+  
+  <div style="
+    position:absolute;
+    top: 30px;
+    left: max(80px , calc(50vw - 350px));
+    height:710px;
+    /*height: calc( 100vh - 60px );*/
+    width: calc( 100vw - 160px );
+    /*min-height: 700px;*/
+    max-width: 700px;
+    /*background-color: rgb(44 82 79 / 26%);*/
+    background-color: rgb(0 18 32 / 19%);
+    border-radius: 10px;
+    z-index:-1;
+  "></div>
+
+
   <ul id="messages"></ul>
   <div class="container-fluid">
     <div class="row">
@@ -73,7 +94,7 @@
           <div class="btn-group" role="group" aria-label="Basic example">
             <button type="button" class="btn btn-dark" id="FFA"
               onclick="setGameMode(this.id)">&nbsp;&nbsp;&nbsp;FFA&nbsp;&nbsp;&nbsp;</button>
-            <button type="button" class="btn btn-dark" id="SINGLE" onclick="setGameMode(this.id)">SINGLE</button>
+            <button type="button" class="btn btn-dark" id="SINGLE" onclick="setGameMode(this.id,true)">SINGLE</button>
           </div>
         </div>
       </div>
@@ -116,16 +137,16 @@
       <div class="center">
         <b>WARNING:</b> The single mode is still under construction.
         There are two levels for now,<br><b>level 0: practice</b> and <b>level 1: time record,</b><br>and we are working on making ~30 stages with various missions which will be added in the future.<br> 
-        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level0')" >level 0</button>
-        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('level1')">level 1</button>
-        <button type="button" class="btn btn-light btn-sm" onclick="singleLevels('Back')">Close</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels(0)" >level 0</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels(1)">level 1</button>
+        <button type="button" class="btn btn-info btn-sm" onclick="singleLevels('Back')">Back</button>
       </div>
     </div>
     <div class="row">
       <div class="col">
         <div class="center">
           <br>
-          <hr style="width:40%; margin: auto;">
+          <hr style="width:40%;max-width:500px; margin: auto;">
           <br>
           Developed by <a href="https://www.its.caltech.edu/~spark3/">SH Park</a> and HG Suh
         </div>
@@ -184,10 +205,6 @@
   </div>
 
 
-  <!--<canvas id="myCanvas" style="border:0px solid lightgrey;">
-    Your browser does not support the HTML5 canvas tag.
-  </canvas>-->
-
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/client/download.js"></script>
   <script src="/src/client/state.js"></script>
@@ -215,16 +232,6 @@
 
     setGameMode(window.ggluser.gameMode);
 
-    // function howto() {
-    //   let x = document.getElementById("HowToPlay");
-    //   if (x.style.display === "none") {
-    //     x.style.display = "block";
-    //     document.getElementById("howto").textContent = "Collapse";
-    //   } else {
-    //     x.style.display = "none";
-    //     document.getElementById("howto").textContent = "How to play";
-    //   }
-    // }
     function howto() {
       let x = document.getElementById("HowToPlay");
       x.style.display = "block";
@@ -234,7 +241,7 @@
       x.style.display = "none";
     }
 
-    function setGameMode(tag) {
+    function setGameMode(tag,showwarning) {
       window.ggluser.gameMode = tag;
       if (window.ggluser.gameMode == "FFA") {
         document.getElementById("FFA").style.backgroundColor = `hsl(166,100%,40%)`;
@@ -243,7 +250,7 @@
       } else if (window.ggluser.gameMode == "SINGLE") {
         document.getElementById("FFA").style.backgroundColor = "#333";
         document.getElementById("SINGLE").style.backgroundColor = `hsl(195,100%,40%)`;
-        document.getElementById("warning").style.display = "block";
+        if(showwarning){document.getElementById("warning").style.display = "block";}
       } 
     }
 
@@ -252,9 +259,10 @@
         document.getElementById("warning").style.display = "none";
         return;
       };
-      window.ggluser.level=tag
+      window.ggluser.singlelevel=parseInt(tag);
       gameEnter();
     }
+    listenBG();
   </script>
 </body>
 

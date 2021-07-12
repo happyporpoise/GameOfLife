@@ -10,6 +10,7 @@ function initState() {
 }
 
 function processGameUpdate(update) {
+
   if (!firstServerTimestamp) {
     firstServerTimestamp = update.t;
     gameStart = Date.now();

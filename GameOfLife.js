@@ -1,5 +1,8 @@
 "use strict";
 
+//import { cellsAtPosition } from './Library.js';
+const ggllib = require('./Library.js');
+
 const fs = require("fs");
 let ranking = JSON.parse(
   fs.readFileSync(
@@ -44,18 +47,13 @@ const keyboardMsgs = [
   "pressedSE",
 ];
 
-function randomChoice(li) {
-  const ind = Math.floor(Math.random() * li.length);
-  return li[ind];
-}
-
 class Cell {
   constructor(gridX, gridY) {
     // Store the position of this cell in the grid
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = Math.random() > 0.9;// 0.9;
+    this.alive = false;// 0.9;
   }
 }
 
@@ -92,13 +90,16 @@ class Player {
 }
 
 class Game {
-  constructor(_io, groupName, numColumns, numRows) {
+  constructor(_io, groupName, gameMode, numColumns, numRows) {
+    this.self=this;
     this.numColumns = numColumns;
     this.numRows = numRows;
 
     this.mapSum = true;
 
+    //gameMode is a literally game mode(eg SINGLE:12) and groupName is the chat room id for the io
     this.groupName = groupName;
+    this.gameMode = gameMode;
     this.gametime = 0;
     this.io = _io;
     this.sockets = {};
@@ -111,7 +112,7 @@ class Game {
     this.shouldSendUpdate = false;
 
     this.gameObjects = []; // array of Cells
-    this.createGrid();
+    this.createGrid(gameMode,numColumns,numRows);
 
     this.buffer = new ArrayBuffer(
       -Math.floor((-this.numColumns * this.numRows) / 32) * 4
@@ -149,24 +150,26 @@ class Game {
     this.checkPlayerIsAlive();
   }
 
-  createGrid() {
-    for (let y = 0; y < this.numRows; y++) {
-      for (let x = 0; x < this.numColumns; x++) {
+  createGrid(gameMode,numColumns,numRows) {
+    for (let y = 0; y < numRows; y++) {
+      for (let x = 0; x < numColumns; x++) {
         this.gameObjects.push(new Cell(x, y));
       }
     }
+    if(gameMode[0]!="SINGLE"){ return ; }
+    ggllib.setSingleLevel[gameMode[1]](this);
   }
 
   isAlive(x, y) {
-    return this.gameObjects[
-      this.gridToIndex(mod(x, this.numColumns), mod(y, this.numRows))
-    ].alive
-      ? 1
-      : 0;
+    return this.gridToObj(x,y).alive;
   }
 
   gridToIndex(x, y) {
     return x + y * this.numColumns;
+  }
+
+  gridToObj(x, y) {
+    return this.gameObjects[mod(x, this.numColumns) + mod(y, this.numRows)* this.numColumns]
   }
 
   checkSurrounding() {
@@ -183,18 +186,17 @@ class Game {
           this.isAlive(x - 1, y + 1) +
           this.isAlive(x, y + 1) +
           this.isAlive(x + 1, y + 1);
-        let centerIndex = this.gridToIndex(x, y);
+        let centerObj = this.gridToObj(x, y);
 
         if (numAlive == 2) {
           // Do nothing
-          this.gameObjects[centerIndex].nextAlive =
-            this.gameObjects[centerIndex].alive;
+          centerObj.nextAlive = centerObj.alive;
         } else if (numAlive == 3) {
           // Make alive
-          this.gameObjects[centerIndex].nextAlive = true;
+          centerObj.nextAlive = true;
         } else {
           // Make dead
-          this.gameObjects[centerIndex].nextAlive = false;
+          centerObj.nextAlive = false;
         }
       }
     }
@@ -255,18 +257,18 @@ class Game {
   checkPlayerIsAlive() {
     if (!this.mapSum && this.groupName in this.players) {
       let i;
-      for (i = 0; i < ranking.length; i++) {
-        if (this.gametime < ranking[i].time) {
+      for (i = 0; i < ranking[this.gameMode[1]].length; i++) {
+        if (this.gametime < ranking[this.gameMode[1]][i].time) {
           break;
         }
       }
-      ranking.splice(i, 0, {
+      ranking[this.gameMode[1]].splice(i, 0, {
         name: this.players[this.groupName].name,
         time: this.gametime,
       });
-      ranking = ranking.slice(0, 100);
+      ranking[this.gameMode[1]] = ranking[this.gameMode[1]].slice(0, 100);
       saveRanking("ranking.txt");
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 15));
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
       this.io.to(this.groupName).emit("singleClear", i, this.gametime);
       delete this.players[this.groupName];
     }
@@ -277,7 +279,7 @@ class Game {
         this.isAlive(
           this.players[socketid].gridX,
           this.players[socketid].gridY
-        ) === 1
+        ) == true
       ) {
         if (!(socketid in this.towerids) && !(socketid in this.smartBotIDs)) {
           this.io.to(socketid).emit("dead");
@@ -313,7 +315,7 @@ class Game {
       if (!(id in this.players)) {
         this.addPlayer(id, id);
       }
-      this.keyboardInput(id, randomChoice(keyboardMsgs), Math.random() > 0.5);
+      this.keyboardInput(id, ggllib.randomChoice(keyboardMsgs), Math.random() > 0.5);
     });
   }
 
@@ -342,52 +344,52 @@ class Game {
           let safeDirections = [];
           if (
             !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y - 1) === 0 &&
+            (this.isAlive(x - 1, y - 1) == false &&
               this.numNearbyAlive(x - 1, y - 1) != 3)
           ) {
             safeDirections.push("NW");
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
           if (
             !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y - 1) === 0 &&
+            (this.isAlive(x + 1, y - 1) == false &&
               this.numNearbyAlive(x + 1, y - 1) != 3)
           ) {
             safeDirections.push("NE");
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
           if (
             !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y + 1) === 0 &&
+            (this.isAlive(x - 1, y + 1) == false &&
               this.numNearbyAlive(x - 1, y + 1) != 3)
           ) {
             safeDirections.push("SW");
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
           if (
             !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y + 1) === 0 &&
+            (this.isAlive(x + 1, y + 1) == false &&
               this.numNearbyAlive(x + 1, y + 1) != 3)
           ) {
             safeDirections.push("SE");
@@ -395,7 +397,7 @@ class Game {
 
           // console.log(safeDirections.length);
 
-          let directionToMove = randomChoice(safeDirections);
+          let directionToMove = ggllib.randomChoice(safeDirections);
           if (directionToMove == "N") {
             this.players[id].movingUp = true;
             this.players[id].movingDown = false;
@@ -537,7 +539,7 @@ class Game {
                 x2 < x &&
                 y2 < y &&
                 (!(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y - 1) === 0 &&
+                  (this.isAlive(x - 1, y - 1) == false &&
                     this.numNearbyAlive(x - 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -550,7 +552,7 @@ class Game {
                 x2 === x &&
                 y2 < y &&
                 (!(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y - 1) === 0 &&
+                  (this.isAlive(x, y - 1) == false &&
                     this.numNearbyAlive(x, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -563,7 +565,7 @@ class Game {
                 x2 > x &&
                 y2 < y &&
                 (!(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y - 1) === 0 &&
+                  (this.isAlive(x + 1, y - 1) == false &&
                     this.numNearbyAlive(x + 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -576,7 +578,7 @@ class Game {
                 x2 < x &&
                 y2 === y &&
                 (!(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y) === 0 &&
+                  (this.isAlive(x - 1, y) == false &&
                     this.numNearbyAlive(x - 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -589,7 +591,7 @@ class Game {
                 x2 > x &&
                 y2 === y &&
                 (!(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y) === 0 &&
+                  (this.isAlive(x + 1, y) == false &&
                     this.numNearbyAlive(x + 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -602,7 +604,7 @@ class Game {
                 x2 < x &&
                 y2 > y &&
                 (!(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y + 1) === 0 &&
+                  (this.isAlive(x - 1, y + 1) == false &&
                     this.numNearbyAlive(x - 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -615,7 +617,7 @@ class Game {
                 x2 === x &&
                 y2 > y &&
                 (!(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y + 1) === 0 &&
+                  (this.isAlive(x, y + 1) == false &&
                     this.numNearbyAlive(x, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -628,7 +630,7 @@ class Game {
                 x2 > x &&
                 y2 > y &&
                 (!(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y + 1) === 0 &&
+                  (this.isAlive(x + 1, y + 1) == false &&
                     this.numNearbyAlive(x + 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -648,58 +650,58 @@ class Game {
           let safeDirections = [];
           if (
             !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y - 1) === 0 &&
+            (this.isAlive(x - 1, y - 1) == false &&
               this.numNearbyAlive(x - 1, y - 1) != 3)
           ) {
             safeDirections.push("NW");
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
           if (
             !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y - 1) === 0 &&
+            (this.isAlive(x + 1, y - 1) == false &&
               this.numNearbyAlive(x + 1, y - 1) != 3)
           ) {
             safeDirections.push("NE");
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
           if (
             !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y + 1) === 0 &&
+            (this.isAlive(x - 1, y + 1) == false &&
               this.numNearbyAlive(x - 1, y + 1) != 3)
           ) {
             safeDirections.push("SW");
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
           if (
             !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y + 1) === 0 &&
+            (this.isAlive(x + 1, y + 1) == false &&
               this.numNearbyAlive(x + 1, y + 1) != 3)
           ) {
             safeDirections.push("SE");
           }
           if (safeDirections.length > 0) {
-            let directionToMove = randomChoice(safeDirections);
+            let directionToMove = ggllib.randomChoice(safeDirections);
             if (directionToMove == "N") {
               this.players[id].movingUp = true;
               this.players[id].movingDown = false;
@@ -773,7 +775,7 @@ class Game {
                 x2 < x - approachRange &&
                 y2 < y - approachRange &&
                 (!(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y - 1) === 0 &&
+                  (this.isAlive(x - 1, y - 1) == false &&
                     this.numNearbyAlive(x - 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -796,7 +798,7 @@ class Game {
                 x2 <= x + approachRange &&
                 y2 < y - approachRange &&
                 (!(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y - 1) === 0 &&
+                  (this.isAlive(x, y - 1) == false &&
                     this.numNearbyAlive(x, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -809,7 +811,7 @@ class Game {
                 x2 > x + approachRange &&
                 y2 < y - approachRange &&
                 (!(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y - 1) === 0 &&
+                  (this.isAlive(x + 1, y - 1) == false &&
                     this.numNearbyAlive(x + 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -832,7 +834,7 @@ class Game {
                 y2 >= y - approachRange &&
                 y2 <= y + approachRange &&
                 (!(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y) === 0 &&
+                  (this.isAlive(x - 1, y) == false &&
                     this.numNearbyAlive(x - 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -846,7 +848,7 @@ class Game {
                 y2 >= y - approachRange &&
                 y2 <= y + approachRange &&
                 (!(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y) === 0 &&
+                  (this.isAlive(x + 1, y) == false &&
                     this.numNearbyAlive(x + 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -859,7 +861,7 @@ class Game {
                 x2 < x - approachRange &&
                 y2 > y + approachRange &&
                 (!(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y + 1) === 0 &&
+                  (this.isAlive(x - 1, y + 1) == false &&
                     this.numNearbyAlive(x - 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -882,7 +884,7 @@ class Game {
                 x2 <= x + approachRange &&
                 y2 > y + approachRange &&
                 (!(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y + 1) === 0 &&
+                  (this.isAlive(x, y + 1) == false &&
                     this.numNearbyAlive(x, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -895,7 +897,7 @@ class Game {
                 x2 > x + approachRange &&
                 y2 > y + approachRange &&
                 (!(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y + 1) === 0 &&
+                  (this.isAlive(x + 1, y + 1) == false &&
                     this.numNearbyAlive(x + 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -927,7 +929,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y + 1) === 0 &&
+                    (this.isAlive(x + 1, y + 1) == false &&
                       this.numNearbyAlive(x + 1, y + 1) != 3)
                   ) {
                     this.players[id].movingUp = false;
@@ -944,7 +946,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y + 1) === 0 &&
+                    (this.isAlive(x - 1, y + 1) == false &&
                       this.numNearbyAlive(x - 1, y + 1) != 3)
                   ) {
                     this.players[id].movingUp = false;
@@ -961,7 +963,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y - 1) === 0 &&
+                    (this.isAlive(x + 1, y - 1) == false &&
                       this.numNearbyAlive(x + 1, y - 1) != 3)
                   ) {
                     this.players[id].movingUp = true;
@@ -978,7 +980,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y - 1) === 0 &&
+                    (this.isAlive(x - 1, y - 1) == false &&
                       this.numNearbyAlive(x - 1, y - 1) != 3)
                   ) {
                     this.players[id].movingUp = true;
@@ -1000,58 +1002,58 @@ class Game {
           let safeDirections = [];
           if (
             !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y - 1) === 0 &&
+            (this.isAlive(x - 1, y - 1) == false &&
               this.numNearbyAlive(x - 1, y - 1) != 3)
           ) {
             safeDirections.push("NW");
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
           if (
             !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y - 1) === 0 &&
+            (this.isAlive(x + 1, y - 1) == false &&
               this.numNearbyAlive(x + 1, y - 1) != 3)
           ) {
             safeDirections.push("NE");
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
           if (
             !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y + 1) === 0 &&
+            (this.isAlive(x - 1, y + 1) == false &&
               this.numNearbyAlive(x - 1, y + 1) != 3)
           ) {
             safeDirections.push("SW");
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
           if (
             !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y + 1) === 0 &&
+            (this.isAlive(x + 1, y + 1) == false &&
               this.numNearbyAlive(x + 1, y + 1) != 3)
           ) {
             safeDirections.push("SE");
           }
           if (safeDirections.length > 0) {
-            let directionToMove = randomChoice(safeDirections);
+            let directionToMove = ggllib.randomChoice(safeDirections);
             if (directionToMove == "N") {
               this.players[id].movingUp = true;
               this.players[id].movingDown = false;
@@ -1128,135 +1130,14 @@ class Game {
         return;
       }
       this.shootAGlider();
-      if (this.players[id].shootNE) {
-        this.players[id].shootNE = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 1, this.numColumns),
-            mod(this.players[id].gridY - 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 2, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY - 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY - 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-      } else if (this.players[id].shootNW) {
-        this.players[id].shootNW = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 1, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 2, this.numColumns),
-            mod(this.players[id].gridY - 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 2, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY - 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-      } else if (this.players[id].shootSW) {
-        this.players[id].shootSW = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 1, this.numColumns),
-            mod(this.players[id].gridY + 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 2, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY + 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY + 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-      } else if (this.players[id].shootSE) {
-        this.players[id].shootSE = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 1, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 2, this.numColumns),
-            mod(this.players[id].gridY + 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 2, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY + 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-      }
+      let didntshoot=true;
+      Array('shootNE','shootNW','shootSW','shootSE').forEach((direction)=>{
+        if (didntshoot &&this.players[id][direction]) {
+          this.players[id][direction] = false;
+          ggllib.putShape(this.self,ggllib.shootCompiled[direction],this.players[id].gridX,this.players[id].gridY);
+          didntshoot=false;
+        }
+      })
     });
   }
 
@@ -1272,14 +1153,14 @@ class Game {
   addPlayer(socketid, name) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
-    if (!randCell.alive) {
+    if (randCell.alive==0) {
       this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
       this.players[socketid].initTime = this.gametime;
     } else {
       this.addPlayer(socketid, name);
     }
     if (this.groupName != "FFA") {
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 10));
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 10));
     }
   }
 
