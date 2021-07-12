@@ -1,7 +1,7 @@
 "use strict";
 
 //import { cellsAtPosition } from './Library.js';
-const ggllib = require('./Library.js');
+const ggllib = require("./Library.js");
 
 const fs = require("fs");
 let ranking = JSON.parse(
@@ -53,7 +53,7 @@ class Cell {
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = false;// 0.9;
+    this.alive = false; // 0.9;
   }
 }
 
@@ -83,15 +83,15 @@ class Player {
     this.initTime = 0;
     this.age = 0;
     // this.color = "#"+Math.floor(Math.random()*16777215).toString(16);
-    this.color = `hsl( ${Math.floor(Math.random() * 360)}, ${Math.floor(
+    this.color = `hsl(${Math.floor(Math.random() * 360)},${Math.floor(
       50 + Math.random() * 30
-    )}%, ${Math.floor(33 + Math.random() * 33)}%)`;
+    )}%,${Math.floor(33 + Math.random() * 33)}%)`;
   }
 }
 
 class Game {
   constructor(_io, groupName, gameMode, numColumns, numRows) {
-    this.self=this;
+    this.self = this;
     this.numColumns = numColumns;
     this.numRows = numRows;
 
@@ -112,7 +112,7 @@ class Game {
     this.shouldSendUpdate = false;
 
     this.gameObjects = []; // array of Cells
-    this.createGrid(gameMode,numColumns,numRows);
+    this.createGrid(gameMode, numColumns, numRows);
 
     this.buffer = new ArrayBuffer(
       -Math.floor((-this.numColumns * this.numRows) / 32) * 4
@@ -150,18 +150,20 @@ class Game {
     this.checkPlayerIsAlive();
   }
 
-  createGrid(gameMode,numColumns,numRows) {
+  createGrid(gameMode, numColumns, numRows) {
     for (let y = 0; y < numRows; y++) {
       for (let x = 0; x < numColumns; x++) {
         this.gameObjects.push(new Cell(x, y));
       }
     }
-    if(gameMode[0]!="SINGLE"){ return ; }
+    if (gameMode[0] != "SINGLE") {
+      return;
+    }
     ggllib.setSingleLevel[gameMode[1]](this);
   }
 
   isAlive(x, y) {
-    return this.gridToObj(x,y).alive;
+    return this.gridToObj(x, y).alive;
   }
 
   gridToIndex(x, y) {
@@ -169,7 +171,9 @@ class Game {
   }
 
   gridToObj(x, y) {
-    return this.gameObjects[mod(x, this.numColumns) + mod(y, this.numRows)* this.numColumns]
+    return this.gameObjects[
+      mod(x, this.numColumns) + mod(y, this.numRows) * this.numColumns
+    ];
   }
 
   checkSurrounding() {
@@ -268,7 +272,9 @@ class Game {
       });
       ranking[this.gameMode[1]] = ranking[this.gameMode[1]].slice(0, 100);
       saveRanking("ranking.txt");
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
+      this.io
+        .to(this.groupName)
+        .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
       this.io.to(this.groupName).emit("singleClear", i, this.gametime);
       delete this.players[this.groupName];
     }
@@ -315,7 +321,11 @@ class Game {
       if (!(id in this.players)) {
         this.addPlayer(id, id);
       }
-      this.keyboardInput(id, ggllib.randomChoice(keyboardMsgs), Math.random() > 0.5);
+      this.keyboardInput(
+        id,
+        ggllib.randomChoice(keyboardMsgs),
+        Math.random() > 0.5
+      );
     });
   }
 
@@ -351,7 +361,8 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false &&
+              this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
@@ -364,13 +375,15 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false &&
+              this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false &&
+              this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
@@ -383,7 +396,8 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false &&
+              this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
@@ -657,7 +671,8 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false &&
+              this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
@@ -670,13 +685,15 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false &&
+              this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false &&
+              this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
@@ -689,7 +706,8 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false &&
+              this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
@@ -1009,7 +1027,8 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false &&
+              this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
@@ -1022,13 +1041,15 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false &&
+              this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false &&
+              this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
@@ -1041,7 +1062,8 @@ class Game {
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false &&
+              this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
@@ -1130,14 +1152,19 @@ class Game {
         return;
       }
       this.shootAGlider();
-      let didntshoot=true;
-      Array('shootNE','shootNW','shootSW','shootSE').forEach((direction)=>{
-        if (didntshoot &&this.players[id][direction]) {
+      let didntshoot = true;
+      Array("shootNE", "shootNW", "shootSW", "shootSE").forEach((direction) => {
+        if (didntshoot && this.players[id][direction]) {
           this.players[id][direction] = false;
-          ggllib.putShape(this.self,ggllib.shootCompiled[direction],this.players[id].gridX,this.players[id].gridY);
-          didntshoot=false;
+          ggllib.putShape(
+            this.self,
+            ggllib.shootCompiled[direction],
+            this.players[id].gridX,
+            this.players[id].gridY
+          );
+          didntshoot = false;
         }
-      })
+      });
     });
   }
 
@@ -1153,14 +1180,16 @@ class Game {
   addPlayer(socketid, name) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
-    if (randCell.alive==0) {
+    if (randCell.alive == 0) {
       this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
       this.players[socketid].initTime = this.gametime;
     } else {
       this.addPlayer(socketid, name);
     }
     if (this.groupName != "FFA") {
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 10));
+      this.io
+        .to(this.groupName)
+        .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 10));
     }
   }
 

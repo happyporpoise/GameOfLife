@@ -2,7 +2,7 @@ let myCanvas = document.getElementById("myCanvas");
 let myContext = null;
 let xcenter = 0;
 let ycenter = 0;
-if(myCanvas){
+if (myCanvas) {
   myContext = myCanvas.getContext("2d");
   myCanvas.width = window.innerWidth;
   myCanvas.height = window.innerHeight;
@@ -36,11 +36,13 @@ class colorBoard {
     this.numColumns = numColumns;
     this.numRows = numRows;
 
-    if(minimap){
-      minimap.width = numColumns*minimapPixel;
-      minimap.height = numRows*minimapPixel;
-      document.getElementById("minimapDiv").style.width = (minimap.width + 20)+"px"
-      document.getElementById("minimapDiv").style.height = (minimap.height + 20)+"px"
+    if (minimap) {
+      minimap.width = numColumns * minimapPixel;
+      minimap.height = numRows * minimapPixel;
+      document.getElementById("minimapDiv").style.width =
+        minimap.width + 20 + "px";
+      document.getElementById("minimapDiv").style.height =
+        minimap.height + 20 + "px";
     }
 
     this.cellAlive = new Array(-Math.floor((-numColumns * numRows) / 32) * 32);
@@ -207,20 +209,21 @@ class colorBoard {
             myContext.fillRect(newx, newy, Playerwidth, Playerheight);
         }
         break;
-      
-        case "BACKGROUND":
-          switch (tag) {
-            case "cellAlive":
-            case "cellDead":
-              //myContext.fillStyle = tag == "cellAlive" ? "#595959" : "#f2f2f2";
-              myContext.fillStyle = tag == "cellAlive" ? "rgba(0,0,0,0.12)" : "transparent";
-              myContext.fillRect(newx, newy, Cellwidth, Cellheight);
-              break;
-            case "player":
-              myContext.fillStyle = "transparent";
-              myContext.fillRect(newx, newy, Playerwidth, Playerheight);
-          }
-          break;
+
+      case "BACKGROUND":
+        switch (tag) {
+          case "cellAlive":
+          case "cellDead":
+            //myContext.fillStyle = tag == "cellAlive" ? "#595959" : "#f2f2f2";
+            myContext.fillStyle =
+              tag == "cellAlive" ? "hsla(0,0%,35%,0.12)" : "hsla(0,0%,95%,0.12)";
+            myContext.fillRect(newx, newy, Cellwidth, Cellheight);
+            break;
+          case "player":
+            myContext.fillStyle = "transparent";
+            myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+        }
+        break;
 
       case "SPACEDECAY":
         switch (tag) {
@@ -238,9 +241,9 @@ class colorBoard {
   }
 
   drawPlayer(x, y, color, username) {
-    if(GUI_MODE=="BACKGROUND"){
-      return
-    }
+    // if(GUI_MODE=="BACKGROUND"){
+    //   return
+    // }
     let newx =
       mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
       Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
@@ -248,11 +251,15 @@ class colorBoard {
       mod(y + Math.floor(this.numRows / 2), this.numRows) * Cellheight +
       Math.floor(myCanvas.height / 2 - (this.numRows / 2) * Cellheight);
 
-      myContext.fillStyle = color;
-      myContext.fillRect(newx, newy, Playerwidth, Playerheight);
-      myContext.font = "13px Arial";
-      myContext.textAlign = "center";
-      myContext.fillText(username, newx + Cellwidth/2, newy - Cellheight/4);
+    myContext.fillStyle = color;
+    if (GUI_MODE == "BACKGROUND") {
+      let softercolor = color.substring(0, 3)+"a"+color.substring(3,color.length-1)+",0.12)";
+      myContext.fillStyle = softercolor;
+    }
+    myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+    myContext.font = "13px Arial";
+    myContext.textAlign = "center";
+    myContext.fillText(username, newx + Cellwidth / 2, newy - Cellheight / 4);
   }
 }
 
@@ -297,11 +304,11 @@ function drawScoreBoard(ranking) {
   for (let i = 1; i <= numChildren; i++) {
     listgroup.removeChild(listgroup.children[listgroup.children.length - 1]);
   }
-  
-  if(window.ggluser.gameMode=="SINGLE"){
-    ranking.unshift({'name':window.ggluser.name,'time':0,'color':"green"});
+
+  if (window.ggluser.gameMode == "SINGLE") {
+    ranking.unshift({ name: window.ggluser.name, time: 0, color: "green" });
   }
-  
+
   for (let i = 0; i < ranking.length; i++) {
     let newListItem = document.createElement("li");
     newListItem.className = "list-group-item";
@@ -310,13 +317,11 @@ function drawScoreBoard(ranking) {
     newbadge.style.cssText = "width:100%;";
     let newbadgeUsername = document.createElement("span");
     newbadgeUsername.style.color = ranking[i].color;
-    newbadgeUsername.textContent =
-    "\t" + ranking[i].name;
+    newbadgeUsername.textContent = "\t" + ranking[i].name;
     newbadge.appendChild(newbadgeUsername);
     let newbadgeScore = document.createElement("span");
     newbadgeScore.style.color = "black";
-    newbadgeScore.textContent =
-    "\t-\t" + (ranking[i].time / 10).toFixed(1);
+    newbadgeScore.textContent = "\t-\t" + (ranking[i].time / 10).toFixed(1);
     newbadge.appendChild(newbadgeScore);
     newListItem.appendChild(newbadge);
     listgroup.appendChild(newListItem);
@@ -324,8 +329,6 @@ function drawScoreBoard(ranking) {
     // newbadgeContent.textContent =
     //   "\t" + ranking[i].name + "\t-\t" + (ranking[i].time / 10).toFixed(1);
   }
-
-  
 }
 
 function draw(id, _gametime, buffer, playerNamePosAndColor) {
@@ -336,8 +339,11 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
 
   if (initTime == 0) initTime = _gametime;
 
-  if(GUI_MODE!="BACKGROUND" && window.ggluser.gameMode=="SINGLE"){
-    document.getElementById("leaderBoard").children[1].children[0].children[1].textContent="\t-\t" + (_gametime / 10).toFixed(1);
+  if (GUI_MODE != "BACKGROUND" && window.ggluser.gameMode == "SINGLE") {
+    document.getElementById(
+      "leaderBoard"
+    ).children[1].children[0].children[1].textContent =
+      "\t-\t" + (_gametime / 10).toFixed(1);
   }
 
   // document.getElementById("clock1").textContent =
@@ -389,12 +395,17 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
   });
 
   //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
-  if(minimap){
+  if (minimap) {
     minimapContext.fillStyle = "#ffffff";
     minimapContext.fillRect(0, 0, minimap.width, minimap.height);
     // minimapContext.fillStyle = "#000000";
     minimapContext.fillStyle = gamePlayer.color;
-    minimapContext.fillRect(minimap.width*gamePlayer.gridX/window.cb.numColumns, minimap.height*gamePlayer.gridY/window.cb.numRows, 3, 3);  
+    minimapContext.fillRect(
+      (minimap.width * gamePlayer.gridX) / window.cb.numColumns,
+      (minimap.height * gamePlayer.gridY) / window.cb.numRows,
+      3,
+      3
+    );
   }
 }
 
