@@ -177,3 +177,23 @@ function gameEnd(tag, i, time) {
     }
   });
 }
+
+function listenBG(){
+  socket.on("connect", (response) => {
+    socket.emit("listenBG", (response) => {
+
+      window.ggluser["socketid"] = response.id
+      //window.ggluser["socketid"] = "Dodger (Bot)"
+      console.log(response.id)
+      window.cb = new colorBoard(response.numColumns, response.numRows);
+      
+      GUI_MODE="BACKGROUND";
+      setupVar(GUI_MODE);
+
+      socket.on("gameUpdate", processGameUpdate);
+
+      initState();
+      startRendering();
+    })
+  })
+}

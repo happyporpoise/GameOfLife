@@ -22,8 +22,7 @@
     html,
     body {
       height: 100%;
-      overflow: scroll;
-      overflow-x: hidden;
+      overflow: hidden;
     }
 
     ::-webkit-scrollbar {
@@ -51,6 +50,28 @@
 </head>
 
 <body>
+
+  <canvas id="myCanvas" style="border:0px solid lightgrey;z-index:-1;">
+    Your browser does not support the HTML5 canvas tag.
+  </canvas>
+
+  
+  <div style="
+    position:absolute;
+    top: 30px;
+    left: max(80px , calc(50vw - 350px));
+    height:710px;
+    /*height: calc( 100vh - 60px );*/
+    width: calc( 100vw - 160px );
+    /*min-height: 700px;*/
+    max-width: 700px;
+    /*background-color: rgb(44 82 79 / 26%);*/
+    background-color: rgb(0 18 32 / 19%);
+    border-radius: 10px;
+    z-index:-1;
+  "></div>
+
+
   <ul id="messages"></ul>
   <div class="container-fluid">
     <div class="row">
@@ -125,7 +146,7 @@
       <div class="col">
         <div class="center">
           <br>
-          <hr style="width:40%; margin: auto;">
+          <hr style="width:40%;max-width:calc( 100vw - 160px ); margin: auto;">
           <br>
           Developed by <a href="https://www.its.caltech.edu/~spark3/">Sunghyuk Park</a> and HG Suh
         </div>
@@ -184,10 +205,6 @@
   </div>
 
 
-  <!--<canvas id="myCanvas" style="border:0px solid lightgrey;">
-    Your browser does not support the HTML5 canvas tag.
-  </canvas>-->
-
   <script src="/socket.io/socket.io.js"></script>
   <script src="/src/client/download.js"></script>
   <script src="/src/client/state.js"></script>
@@ -215,16 +232,6 @@
 
     setGameMode(window.ggluser.gameMode);
 
-    // function howto() {
-    //   let x = document.getElementById("HowToPlay");
-    //   if (x.style.display === "none") {
-    //     x.style.display = "block";
-    //     document.getElementById("howto").textContent = "Collapse";
-    //   } else {
-    //     x.style.display = "none";
-    //     document.getElementById("howto").textContent = "How to play";
-    //   }
-    // }
     function howto() {
       let x = document.getElementById("HowToPlay");
       x.style.display = "block";
@@ -255,6 +262,7 @@
       window.ggluser.singlelevel=parseInt(tag);
       gameEnter();
     }
+    listenBG();
   </script>
 </body>
 

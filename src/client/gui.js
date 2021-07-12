@@ -25,7 +25,7 @@ const Cellwidth = 15;
 const Cellheight = 15;
 const Playerwidth = 15;
 const Playerheight = 15;
-const minimapPixel = 130/150;
+const minimapPixel = 130/200;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
@@ -207,6 +207,20 @@ class colorBoard {
             myContext.fillRect(newx, newy, Playerwidth, Playerheight);
         }
         break;
+      
+        case "BACKGROUND":
+          switch (tag) {
+            case "cellAlive":
+            case "cellDead":
+              //myContext.fillStyle = tag == "cellAlive" ? "#595959" : "#f2f2f2";
+              myContext.fillStyle = tag == "cellAlive" ? "rgba(0,0,0,0.12)" : "transparent";
+              myContext.fillRect(newx, newy, Cellwidth, Cellheight);
+              break;
+            case "player":
+              myContext.fillStyle = "transparent";
+              myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+          }
+          break;
 
       case "SPACEDECAY":
         switch (tag) {
@@ -224,6 +238,9 @@ class colorBoard {
   }
 
   drawPlayer(x, y, color, username) {
+    if(GUI_MODE=="BACKGROUND"){
+      return
+    }
     let newx =
       mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
       Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
@@ -236,9 +253,6 @@ class colorBoard {
       myContext.font = "13px Arial";
       myContext.textAlign = "center";
       myContext.fillText(username, newx + Cellwidth/2, newy - Cellheight/4);
-      // myContext.strokeStyle = "black";
-      // myContext.lineWidth = 0.1;
-      // myContext.strokeText(username, newx + Cellwidth/2, newy - Cellheight/4);
   }
 }
 
@@ -322,7 +336,7 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
 
   if (initTime == 0) initTime = _gametime;
 
-  if(window.ggluser.gameMode=="SINGLE"){
+  if(GUI_MODE!="BACKGROUND" && window.ggluser.gameMode=="SINGLE"){
     document.getElementById("leaderBoard").children[1].children[0].children[1].textContent="\t-\t" + (_gametime / 10).toFixed(1);
   }
 
@@ -330,7 +344,6 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
   //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
 
   decodeBytes(buffer, window.cb);
-
   if (id in playerNamePosAndColor) {
     gamePlayer = playerNamePosAndColor[id];
   }

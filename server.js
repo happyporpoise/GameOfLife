@@ -60,6 +60,16 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on("listenBG", (callback) => {
+    socket.join("FFA");
+    let playerlist = Object.keys(games['FFA'].players);
+    callback({
+      numColumns: games['FFA'].numColumns,
+      numRows: games['FFA'].numRows,
+      id: playerlist[0],
+    });
+  });
+
   socket.on("setGame", (name, gameMode, callback) => {
     if(name in usercon.users){
       callback({
