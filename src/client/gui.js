@@ -25,7 +25,7 @@ const Cellwidth = 15;
 const Cellheight = 15;
 const Playerwidth = 15;
 const Playerheight = 15;
-const minimapPixel = 130/200;
+const minimapPixel = 0.9;
 
 function mod(n, m) {
   return ((n % m) + m) % m;
