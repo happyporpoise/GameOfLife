@@ -73,7 +73,7 @@
           <div class="btn-group" role="group" aria-label="Basic example">
             <button type="button" class="btn btn-dark" id="FFA"
               onclick="setGameMode(this.id)">&nbsp;&nbsp;&nbsp;FFA&nbsp;&nbsp;&nbsp;</button>
-            <button type="button" class="btn btn-dark" id="SINGLE" onclick="setGameMode(this.id)">SINGLE</button>
+            <button type="button" class="btn btn-dark" id="SINGLE" onclick="setGameMode(this.id,true)">SINGLE</button>
           </div>
         </div>
       </div>
@@ -234,7 +234,7 @@
       x.style.display = "none";
     }
 
-    function setGameMode(tag) {
+    function setGameMode(tag,showwarning) {
       window.ggluser.gameMode = tag;
       if (window.ggluser.gameMode == "FFA") {
         document.getElementById("FFA").style.backgroundColor = `hsl(166,100%,40%)`;
@@ -243,7 +243,7 @@
       } else if (window.ggluser.gameMode == "SINGLE") {
         document.getElementById("FFA").style.backgroundColor = "#333";
         document.getElementById("SINGLE").style.backgroundColor = `hsl(195,100%,40%)`;
-        document.getElementById("warning").style.display = "block";
+        if(showwarning){document.getElementById("warning").style.display = "block";}
       } 
     }
 

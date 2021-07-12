@@ -90,7 +90,6 @@ function setGame() {
         );
         redirect("");
       } else {
-
         socket.on("drawScoreBoard", drawScoreBoard);
 
         window.cb = new colorBoard(response.numColumns, response.numRows);
@@ -151,7 +150,7 @@ function gameEnd(tag, i, time) {
     let deadalert = document.createElement("span");
     deadalert.className = "badge bg-warning text-dark";
     deadalert.style.width = "100%";
-    deadalert.textContent = `(#${i}) `+(time/10).toFixed(1)+"s";
+    deadalert.textContent = `(#${i+1}) `+(time/10).toFixed(1)+"s";
     deadalerth3.appendChild(deadalert);
     y.insertBefore(deadalerth3, y.firstChild);
   }

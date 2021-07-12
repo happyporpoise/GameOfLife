@@ -190,8 +190,7 @@ class Game {
 
         if (numAlive == 2) {
           // Do nothing
-          centerObj.nextAlive =
-          centerObj.alive;
+          centerObj.nextAlive = centerObj.alive;
         } else if (numAlive == 3) {
           // Make alive
           centerObj.nextAlive = true;
@@ -280,7 +279,7 @@ class Game {
         this.isAlive(
           this.players[socketid].gridX,
           this.players[socketid].gridY
-        ) === 1
+        ) == true
       ) {
         if (!(socketid in this.towerids) && !(socketid in this.smartBotIDs)) {
           this.io.to(socketid).emit("dead");
@@ -345,52 +344,52 @@ class Game {
           let safeDirections = [];
           if (
             !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y - 1) === 0 &&
+            (this.isAlive(x - 1, y - 1) == false &&
               this.numNearbyAlive(x - 1, y - 1) != 3)
           ) {
             safeDirections.push("NW");
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
           if (
             !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y - 1) === 0 &&
+            (this.isAlive(x + 1, y - 1) == false &&
               this.numNearbyAlive(x + 1, y - 1) != 3)
           ) {
             safeDirections.push("NE");
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
           if (
             !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y + 1) === 0 &&
+            (this.isAlive(x - 1, y + 1) == false &&
               this.numNearbyAlive(x - 1, y + 1) != 3)
           ) {
             safeDirections.push("SW");
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
           if (
             !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y + 1) === 0 &&
+            (this.isAlive(x + 1, y + 1) == false &&
               this.numNearbyAlive(x + 1, y + 1) != 3)
           ) {
             safeDirections.push("SE");
@@ -540,7 +539,7 @@ class Game {
                 x2 < x &&
                 y2 < y &&
                 (!(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y - 1) === 0 &&
+                  (this.isAlive(x - 1, y - 1) == false &&
                     this.numNearbyAlive(x - 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -553,7 +552,7 @@ class Game {
                 x2 === x &&
                 y2 < y &&
                 (!(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y - 1) === 0 &&
+                  (this.isAlive(x, y - 1) == false &&
                     this.numNearbyAlive(x, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -566,7 +565,7 @@ class Game {
                 x2 > x &&
                 y2 < y &&
                 (!(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y - 1) === 0 &&
+                  (this.isAlive(x + 1, y - 1) == false &&
                     this.numNearbyAlive(x + 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -579,7 +578,7 @@ class Game {
                 x2 < x &&
                 y2 === y &&
                 (!(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y) === 0 &&
+                  (this.isAlive(x - 1, y) == false &&
                     this.numNearbyAlive(x - 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -592,7 +591,7 @@ class Game {
                 x2 > x &&
                 y2 === y &&
                 (!(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y) === 0 &&
+                  (this.isAlive(x + 1, y) == false &&
                     this.numNearbyAlive(x + 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -605,7 +604,7 @@ class Game {
                 x2 < x &&
                 y2 > y &&
                 (!(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y + 1) === 0 &&
+                  (this.isAlive(x - 1, y + 1) == false &&
                     this.numNearbyAlive(x - 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -618,7 +617,7 @@ class Game {
                 x2 === x &&
                 y2 > y &&
                 (!(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y + 1) === 0 &&
+                  (this.isAlive(x, y + 1) == false &&
                     this.numNearbyAlive(x, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -631,7 +630,7 @@ class Game {
                 x2 > x &&
                 y2 > y &&
                 (!(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y + 1) === 0 &&
+                  (this.isAlive(x + 1, y + 1) == false &&
                     this.numNearbyAlive(x + 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -651,52 +650,52 @@ class Game {
           let safeDirections = [];
           if (
             !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y - 1) === 0 &&
+            (this.isAlive(x - 1, y - 1) == false &&
               this.numNearbyAlive(x - 1, y - 1) != 3)
           ) {
             safeDirections.push("NW");
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
           if (
             !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y - 1) === 0 &&
+            (this.isAlive(x + 1, y - 1) == false &&
               this.numNearbyAlive(x + 1, y - 1) != 3)
           ) {
             safeDirections.push("NE");
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
           if (
             !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y + 1) === 0 &&
+            (this.isAlive(x - 1, y + 1) == false &&
               this.numNearbyAlive(x - 1, y + 1) != 3)
           ) {
             safeDirections.push("SW");
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
           if (
             !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y + 1) === 0 &&
+            (this.isAlive(x + 1, y + 1) == false &&
               this.numNearbyAlive(x + 1, y + 1) != 3)
           ) {
             safeDirections.push("SE");
@@ -776,7 +775,7 @@ class Game {
                 x2 < x - approachRange &&
                 y2 < y - approachRange &&
                 (!(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y - 1) === 0 &&
+                  (this.isAlive(x - 1, y - 1) == false &&
                     this.numNearbyAlive(x - 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -799,7 +798,7 @@ class Game {
                 x2 <= x + approachRange &&
                 y2 < y - approachRange &&
                 (!(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y - 1) === 0 &&
+                  (this.isAlive(x, y - 1) == false &&
                     this.numNearbyAlive(x, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -812,7 +811,7 @@ class Game {
                 x2 > x + approachRange &&
                 y2 < y - approachRange &&
                 (!(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y - 1) === 0 &&
+                  (this.isAlive(x + 1, y - 1) == false &&
                     this.numNearbyAlive(x + 1, y - 1) != 3))
               ) {
                 this.players[id].movingUp = true;
@@ -835,7 +834,7 @@ class Game {
                 y2 >= y - approachRange &&
                 y2 <= y + approachRange &&
                 (!(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y) === 0 &&
+                  (this.isAlive(x - 1, y) == false &&
                     this.numNearbyAlive(x - 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -849,7 +848,7 @@ class Game {
                 y2 >= y - approachRange &&
                 y2 <= y + approachRange &&
                 (!(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y) === 0 &&
+                  (this.isAlive(x + 1, y) == false &&
                     this.numNearbyAlive(x + 1, y) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -862,7 +861,7 @@ class Game {
                 x2 < x - approachRange &&
                 y2 > y + approachRange &&
                 (!(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x - 1, y + 1) === 0 &&
+                  (this.isAlive(x - 1, y + 1) == false &&
                     this.numNearbyAlive(x - 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -885,7 +884,7 @@ class Game {
                 x2 <= x + approachRange &&
                 y2 > y + approachRange &&
                 (!(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x, y + 1) === 0 &&
+                  (this.isAlive(x, y + 1) == false &&
                     this.numNearbyAlive(x, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -898,7 +897,7 @@ class Game {
                 x2 > x + approachRange &&
                 y2 > y + approachRange &&
                 (!(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                  (this.isAlive(x + 1, y + 1) === 0 &&
+                  (this.isAlive(x + 1, y + 1) == false &&
                     this.numNearbyAlive(x + 1, y + 1) != 3))
               ) {
                 this.players[id].movingUp = false;
@@ -930,7 +929,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y + 1) === 0 &&
+                    (this.isAlive(x + 1, y + 1) == false &&
                       this.numNearbyAlive(x + 1, y + 1) != 3)
                   ) {
                     this.players[id].movingUp = false;
@@ -947,7 +946,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y + 1) === 0 &&
+                    (this.isAlive(x - 1, y + 1) == false &&
                       this.numNearbyAlive(x - 1, y + 1) != 3)
                   ) {
                     this.players[id].movingUp = false;
@@ -964,7 +963,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y - 1) === 0 &&
+                    (this.isAlive(x + 1, y - 1) == false &&
                       this.numNearbyAlive(x + 1, y - 1) != 3)
                   ) {
                     this.players[id].movingUp = true;
@@ -981,7 +980,7 @@ class Game {
                   noShooting = false;
                   if (
                     !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y - 1) === 0 &&
+                    (this.isAlive(x - 1, y - 1) == false &&
                       this.numNearbyAlive(x - 1, y - 1) != 3)
                   ) {
                     this.players[id].movingUp = true;
@@ -1003,52 +1002,52 @@ class Game {
           let safeDirections = [];
           if (
             !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y - 1) === 0 &&
+            (this.isAlive(x - 1, y - 1) == false &&
               this.numNearbyAlive(x - 1, y - 1) != 3)
           ) {
             safeDirections.push("NW");
           }
           if (
             !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y - 1) === 0 && this.numNearbyAlive(x, y - 1) != 3)
+            (this.isAlive(x, y - 1) == false && this.numNearbyAlive(x, y - 1) != 3)
           ) {
             safeDirections.push("N");
           }
           if (
             !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y - 1) === 0 &&
+            (this.isAlive(x + 1, y - 1) == false &&
               this.numNearbyAlive(x + 1, y - 1) != 3)
           ) {
             safeDirections.push("NE");
           }
           if (
             !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y) === 0 && this.numNearbyAlive(x - 1, y) != 3)
+            (this.isAlive(x - 1, y) == false && this.numNearbyAlive(x - 1, y) != 3)
           ) {
             safeDirections.push("W");
           }
           if (
             !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y) === 0 && this.numNearbyAlive(x + 1, y) != 3)
+            (this.isAlive(x + 1, y) == false && this.numNearbyAlive(x + 1, y) != 3)
           ) {
             safeDirections.push("E");
           }
           if (
             !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x - 1, y + 1) === 0 &&
+            (this.isAlive(x - 1, y + 1) == false &&
               this.numNearbyAlive(x - 1, y + 1) != 3)
           ) {
             safeDirections.push("SW");
           }
           if (
             !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x, y + 1) === 0 && this.numNearbyAlive(x, y + 1) != 3)
+            (this.isAlive(x, y + 1) == false && this.numNearbyAlive(x, y + 1) != 3)
           ) {
             safeDirections.push("S");
           }
           if (
             !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-            (this.isAlive(x + 1, y + 1) === 0 &&
+            (this.isAlive(x + 1, y + 1) == false &&
               this.numNearbyAlive(x + 1, y + 1) != 3)
           ) {
             safeDirections.push("SE");
@@ -1154,7 +1153,7 @@ class Game {
   addPlayer(socketid, name) {
     let randCell =
       this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
-    if (!randCell.alive) {
+    if (randCell.alive==0) {
       this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
       this.players[socketid].initTime = this.gametime;
     } else {

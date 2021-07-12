@@ -284,7 +284,7 @@ function drawScoreBoard(ranking) {
     listgroup.removeChild(listgroup.children[listgroup.children.length - 1]);
   }
   
-  if(window.ggluser.gameMode="SINGLE"){
+  if(window.ggluser.gameMode=="SINGLE"){
     ranking.unshift({'name':window.ggluser.name,'time':0,'color':"green"});
   }
   
@@ -321,6 +321,10 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
   myContext.fillRect(0, 0, myCanvas.width, myCanvas.height);
 
   if (initTime == 0) initTime = _gametime;
+
+  if(window.ggluser.gameMode=="SINGLE"){
+    document.getElementById("leaderBoard").children[1].children[0].children[1].textContent="\t-\t" + (_gametime / 10).toFixed(1);
+  }
 
   // document.getElementById("clock1").textContent =
   //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
