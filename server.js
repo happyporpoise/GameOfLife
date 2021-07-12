@@ -102,7 +102,12 @@ io.on('connection', (socket) => {
 
       if(gameMode[0]=="SINGLE"){
         socket.join(socket.id);
-        games[socket.id]=new Game(io,socket.id,gameMode,50,50);
+        if(gameMode[1]=='1'){
+          games[socket.id]=new Game(io,socket.id,gameMode,50,50);
+        }
+        else{
+          games[socket.id]=new Game(io,socket.id,gameMode,100,100);
+        }
         //callback must be called before addPlayer because client will be ready to hear only after success callback
         callback({
           id: newuser[usercon.pk],

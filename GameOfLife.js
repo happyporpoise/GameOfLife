@@ -1,6 +1,7 @@
 "use strict";
 
 //import { cellsAtPosition } from './Library.js';
+const ggllib = require('./Library.js');
 
 const fs = require("fs");
 let ranking = JSON.parse(
@@ -46,18 +47,13 @@ const keyboardMsgs = [
   "pressedSE",
 ];
 
-function randomChoice(li) {
-  const ind = Math.floor(Math.random() * li.length);
-  return li[ind];
-}
-
 class Cell {
   constructor(gridX, gridY) {
     // Store the position of this cell in the grid
     this.gridX = gridX;
     this.gridY = gridY;
 
-    this.alive = Math.random() > 0.9;// 0.9;
+    this.alive = false;// 0.9;
   }
 }
 
@@ -95,6 +91,7 @@ class Player {
 
 class Game {
   constructor(_io, groupName, gameMode, numColumns, numRows) {
+    this.self=this;
     this.numColumns = numColumns;
     this.numRows = numRows;
 
@@ -160,28 +157,19 @@ class Game {
       }
     }
     if(gameMode[0]!="SINGLE"){ return ; }
-    let level=parseInt(gameMode[1]);
-    if(level==0){
-      this.gameObjects.forEach((cell)=>{
-        cell.alive=false;
-      })
-      this.gameObjects[this.gridToIndex(0, 0)].alive=true;
-      this.gameObjects[this.gridToIndex(1, 0)].alive=true;
-      this.gameObjects[this.gridToIndex(0, 1)].alive=true;
-      this.gameObjects[this.gridToIndex(1, 1)].alive=true;
-    }
+    ggllib.setSingleLevel[gameMode[1]](this);
   }
 
   isAlive(x, y) {
-    return this.gameObjects[
-      this.gridToIndex(mod(x, this.numColumns), mod(y, this.numRows))
-    ].alive
-      ? 1
-      : 0;
+    return this.gridToObj(x,y).alive;
   }
 
   gridToIndex(x, y) {
     return x + y * this.numColumns;
+  }
+
+  gridToObj(x, y) {
+    return this.gameObjects[mod(x, this.numColumns) + mod(y, this.numRows)* this.numColumns]
   }
 
   checkSurrounding() {
@@ -198,18 +186,18 @@ class Game {
           this.isAlive(x - 1, y + 1) +
           this.isAlive(x, y + 1) +
           this.isAlive(x + 1, y + 1);
-        let centerIndex = this.gridToIndex(x, y);
+        let centerObj = this.gridToObj(x, y);
 
         if (numAlive == 2) {
           // Do nothing
-          this.gameObjects[centerIndex].nextAlive =
-            this.gameObjects[centerIndex].alive;
+          centerObj.nextAlive =
+          centerObj.alive;
         } else if (numAlive == 3) {
           // Make alive
-          this.gameObjects[centerIndex].nextAlive = true;
+          centerObj.nextAlive = true;
         } else {
           // Make dead
-          this.gameObjects[centerIndex].nextAlive = false;
+          centerObj.nextAlive = false;
         }
       }
     }
@@ -270,18 +258,18 @@ class Game {
   checkPlayerIsAlive() {
     if (!this.mapSum && this.groupName in this.players) {
       let i;
-      for (i = 0; i < ranking.length; i++) {
-        if (this.gametime < ranking[i].time) {
+      for (i = 0; i < ranking[this.gameMode[1]].length; i++) {
+        if (this.gametime < ranking[this.gameMode[1]][i].time) {
           break;
         }
       }
-      ranking.splice(i, 0, {
+      ranking[this.gameMode[1]].splice(i, 0, {
         name: this.players[this.groupName].name,
         time: this.gametime,
       });
-      ranking = ranking.slice(0, 100);
+      ranking[this.gameMode[1]] = ranking[this.gameMode[1]].slice(0, 100);
       saveRanking("ranking.txt");
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 15));
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
       this.io.to(this.groupName).emit("singleClear", i, this.gametime);
       delete this.players[this.groupName];
     }
@@ -328,7 +316,7 @@ class Game {
       if (!(id in this.players)) {
         this.addPlayer(id, id);
       }
-      this.keyboardInput(id, randomChoice(keyboardMsgs), Math.random() > 0.5);
+      this.keyboardInput(id, ggllib.randomChoice(keyboardMsgs), Math.random() > 0.5);
     });
   }
 
@@ -410,7 +398,7 @@ class Game {
 
           // console.log(safeDirections.length);
 
-          let directionToMove = randomChoice(safeDirections);
+          let directionToMove = ggllib.randomChoice(safeDirections);
           if (directionToMove == "N") {
             this.players[id].movingUp = true;
             this.players[id].movingDown = false;
@@ -714,7 +702,7 @@ class Game {
             safeDirections.push("SE");
           }
           if (safeDirections.length > 0) {
-            let directionToMove = randomChoice(safeDirections);
+            let directionToMove = ggllib.randomChoice(safeDirections);
             if (directionToMove == "N") {
               this.players[id].movingUp = true;
               this.players[id].movingDown = false;
@@ -1066,7 +1054,7 @@ class Game {
             safeDirections.push("SE");
           }
           if (safeDirections.length > 0) {
-            let directionToMove = randomChoice(safeDirections);
+            let directionToMove = ggllib.randomChoice(safeDirections);
             if (directionToMove == "N") {
               this.players[id].movingUp = true;
               this.players[id].movingDown = false;
@@ -1143,135 +1131,14 @@ class Game {
         return;
       }
       this.shootAGlider();
-      if (this.players[id].shootNE) {
-        this.players[id].shootNE = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 1, this.numColumns),
-            mod(this.players[id].gridY - 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 2, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY - 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY - 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-      } else if (this.players[id].shootNW) {
-        this.players[id].shootNW = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 1, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 2, this.numColumns),
-            mod(this.players[id].gridY - 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 2, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY - 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY - 3, this.numRows)
-          )
-        ].alive = true;
-      } else if (this.players[id].shootSW) {
-        this.players[id].shootSW = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 1, this.numColumns),
-            mod(this.players[id].gridY + 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 2, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY + 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY + 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX - 3, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-      } else if (this.players[id].shootSE) {
-        this.players[id].shootSE = false;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 1, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 2, this.numColumns),
-            mod(this.players[id].gridY + 1, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 2, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY + 2, this.numRows)
-          )
-        ].alive = true;
-        this.gameObjects[
-          this.gridToIndex(
-            mod(this.players[id].gridX + 3, this.numColumns),
-            mod(this.players[id].gridY + 3, this.numRows)
-          )
-        ].alive = true;
-      }
+      let didntshoot=true;
+      Array('shootNE','shootNW','shootSW','shootSE').forEach((direction)=>{
+        if (didntshoot &&this.players[id][direction]) {
+          this.players[id][direction] = false;
+          ggllib.putShape(this.self,ggllib.shootCompiled[direction],this.players[id].gridX,this.players[id].gridY);
+          didntshoot=false;
+        }
+      })
     });
   }
 
@@ -1294,7 +1161,7 @@ class Game {
       this.addPlayer(socketid, name);
     }
     if (this.groupName != "FFA") {
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking.slice(0, 10));
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 10));
     }
   }
 

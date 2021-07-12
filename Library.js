@@ -1,4 +1,4 @@
-export function cellsAtPosition(x, y, cells) {
+function cellsAtPosition(x, y, cells) {
   let shiftedCells = [];
   for (let i = 0; i < cells.length; i++) {
     shiftedCells.push([cells[i][0] + x, cells[i][1] + y]);
@@ -23,6 +23,46 @@ function shapeToCells(shape) {
   }
   return cell;
 }
+
+function mapShape(game,posX,posY,width,height,mapfunc) {
+  for (let i = 0; i < width; i++) {
+    for (let j = 0; j < height; j++) {
+      game.gridToObj(posX+i,posY+j).alive=mapfunc(i,j);
+    }
+  }
+}
+
+function randomChoice(li) {
+  const ind = Math.floor(Math.random() * li.length);
+  return li[ind];
+}
+
+const setSingleLevel={
+  '0': (game) => putShape(game,shapeToCells(randomChoice(listOfShapes.slice(1))),0,0),
+  '1': (game) => mapShape(game,0,0,game.numColumns,game.numRows,()=>(Math.random() > 0.9)),
+}
+
+function putShape(game,seq,posX,posY) {
+  //This function is frequently called so it assumes the inputs are in correct form without checking them
+  //It does not clean up the space and only injecting true values. Apply mapShape(...,()=>false) in advance if you need.
+  seq.forEach((dpos)=>{
+    game.gridToObj(posX+dpos[0],posY+dpos[1]).alive=true;
+  })
+}
+
+const shootCompiled = {
+  'shootNE':[[+1,-2],[+2,-3],[+3,-1],[+3,-2],[+3,-3]],
+  'shootNW':[[-1,-3],[-2,-1],[-2,-3],[-3,-2],[-3,-3]],
+  'shootSW':[[-1,+2],[-2,+3],[-3,+1],[-3,+2],[-3,+3]],
+  'shootSE':[[+1,+3],[+2,+1],[+2,+3],[+3,+2],[+3,+3]],
+};
+
+module.exports = {
+  putShape:putShape,
+  shootCompiled:shootCompiled,
+  setSingleLevel:setSingleLevel,
+  randomChoice,randomChoice
+};
 
 // The following library of lives is mostly from conwaylife.com/wiki
 
