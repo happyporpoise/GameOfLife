@@ -15,38 +15,62 @@ if (window.ggluser === null) {
   };
 }
 
-keyboarddMap = {
-  KeyS: "movingDown",
-  ArrowDown: "movingDown",
-  KeyW: "movingUp",
-  ArrowUp: "movingUp",
-  KeyA: "movingLeft",
-  ArrowLeft: "movingLeft",
-  KeyD: "movingRight",
-  ArrowRight: "movingRight",
-  KeyI: "pressedNE",
-  KeyO: "pressedNE",
-  KeyY: "pressedNW",
-  KeyU: "pressedNW",
-  KeyH: "pressedSW",
-  KeyJ: "pressedSW",
-  KeyK: "pressedSE",
-  KeyL: "pressedSE",
-};
+keyboardMap = JSON.parse(window.localStorage.getItem("keyboardMap"));
+if (keyboardMap === null) {
+  keyboardMap = {
+    KeyS: "movingDown",
+    ArrowDown: "movingDown",
+    KeyW: "movingUp",
+    ArrowUp: "movingUp",
+    KeyA: "movingLeft",
+    ArrowLeft: "movingLeft",
+    KeyD: "movingRight",
+    ArrowRight: "movingRight",
+    KeyI: "pressedNE",
+    KeyO: "pressedNE",
+    KeyY: "pressedNW",
+    KeyU: "pressedNW",
+    KeyH: "pressedSW",
+    KeyJ: "pressedSW",
+    KeyK: "pressedSE",
+    KeyL: "pressedSE",
+  };
+}
+
+keyboardInverseMap = JSON.parse(window.localStorage.getItem("keyboardInverseMap"));
+if (keyboardInverseMap === null) {
+  keyboardInverseMap = {
+    movingUp: "W",
+    movingLeft: "A",
+    movingDown: "S",
+    movingRight: "D",
+    pressedNW: "Y",
+    pressedNE: "I",
+    pressedSW: "H",
+    pressedSE: "K",
+  };
+}
 
 function sendEvent(tag, id) {
   return (e) => {
     if (e.type == "keyup" || e.type == "keydown") {
-      if (e.defaultPrevented || !(e.code in keyboarddMap)) {
+      if (e.defaultPrevented || !(e.code in keyboardMap)) {
         return; // Do nothing if event already handled
       }
-      socket.emit(tag, id, keyboarddMap[e.code]);
+      socket.emit(tag, id, keyboardMap[e.code]);
       e.preventDefault();
     }
   };
 }
 
 function redirect(tag) {
+  window.localStorage.clear();
+  window.localStorage.setItem("keyboardMap", JSON.stringify(keyboardMap));
+  window.localStorage.setItem("keyboardInverseMap", JSON.stringify(keyboardInverseMap));
+  window.localStorage.setItem("GUI_MODE", GUI_MODE);
+  window.localStorage.setItem("GUIchoice", GUIchoice);
+  window.localStorage.setItem("customAliveCellColor", customAliveCellColor);
+  window.localStorage.setItem("customDeadCellColor", customDeadCellColor);
   window.localStorage.setItem("ggl.user", JSON.stringify(window.ggluser));
   window.location.href = window.location.origin + "/" + tag.toLowerCase();
 }
@@ -62,6 +86,45 @@ function gameEnter() {
     return;
   }
   redirect(window.ggluser.gameMode);
+}
+
+function clearKeyboardMap() {
+  keyboardMap = {
+    ArrowUp: "movingUp",
+    ArrowLeft: "movingLeft",
+    ArrowDown: "movingDown",
+    ArrowRight: "movingRight",
+  };
+}
+
+function displayKeyboardInverseMap() {
+  document.getElementById("movingUpKey").value = keyboardInverseMap.movingUp;
+  document.getElementById("movingLeftKey").value = keyboardInverseMap.movingLeft;
+  document.getElementById("movingDownKey").value = keyboardInverseMap.movingDown;
+  document.getElementById("movingRightKey").value = keyboardInverseMap.movingRight;
+  document.getElementById("pressedNWKey").value = keyboardInverseMap.pressedNW;
+  document.getElementById("pressedNEKey").value = keyboardInverseMap.pressedNE;
+  document.getElementById("pressedSWKey").value = keyboardInverseMap.pressedSW;
+  document.getElementById("pressedSEKey").value = keyboardInverseMap.pressedSE;
+}
+
+function setKeyboardMap() {
+  keyboardInverseMap.movingUp = document.getElementById("movingUpKey").value;
+  keyboardInverseMap.movingLeft = document.getElementById("movingLeftKey").value;
+  keyboardInverseMap.movingDown = document.getElementById("movingDownKey").value;
+  keyboardInverseMap.movingRight = document.getElementById("movingRightKey").value;
+  keyboardMap["Key" + document.getElementById("movingUpKey").value.toUpperCase()] = "movingUp";
+  keyboardMap["Key" + document.getElementById("movingLeftKey").value.toUpperCase()] = "movingLeft";
+  keyboardMap["Key" + document.getElementById("movingDownKey").value.toUpperCase()] = "movingDown";
+  keyboardMap["Key" + document.getElementById("movingRightKey").value.toUpperCase()] = "movingRight";
+  keyboardInverseMap.pressedNW = document.getElementById("pressedNWKey").value;
+  keyboardInverseMap.pressedNE = document.getElementById("pressedNEKey").value;
+  keyboardInverseMap.pressedSW = document.getElementById("pressedSWKey").value;
+  keyboardInverseMap.pressedSE = document.getElementById("pressedSEKey").value;
+  keyboardMap["Key" + document.getElementById("pressedNWKey").value.toUpperCase()] = "pressedNW";
+  keyboardMap["Key" + document.getElementById("pressedNEKey").value.toUpperCase()] = "pressedNE";
+  keyboardMap["Key" + document.getElementById("pressedSWKey").value.toUpperCase()] = "pressedSW";
+  keyboardMap["Key" + document.getElementById("pressedSEKey").value.toUpperCase()] = "pressedSE";
 }
 
 function setGame() {
@@ -132,7 +195,7 @@ function gameEnd(tag, i, time) {
   let y = document.getElementById("menuCenter");
   let z = document.getElementById("menuButtonGroup");
   x.style.display = "block";
-  document.getElementById("optionMenu").style.display = "none";
+  // document.getElementById("optionMenu").style.display = "none";
   
   let br = document.createElement("br");
   y.insertBefore(br, y.firstChild);

@@ -17,12 +17,12 @@
   </canvas>
 
   <ul class="list-group list-group-flush" id="leaderBoard">
-    <li class="list-group-item"><span class="badge rounded-pill bg-secondary"
-        style="width:100%;">Scoreboard</span></li>
+    <li class="list-group-item"><span class="badge rounded-pill bg-secondary" style="width:100%;">Scoreboard</span></li>
     <!-- <li class="list-group-item"><span class="badge rounded-pill bg-info text-dark" style = "width:100%;" id="clock1">Time:0s</span></li> -->
   </ul>
 
-  <div class="alert alert-primary" id="minimapDiv" style="width: 150px; height: 150px; top: 100%; left: 100%; transform: translate(-110%, -110%); padding: 10px; background-color: rgba(0, 0, 0, 0.5);">
+  <div class="alert alert-primary" id="minimapDiv"
+    style="width: 150px; height: 150px; top: 100%; left: 100%; transform: translate(-110%, -110%); padding: 10px; background-color: rgba(0, 0, 0, 0.5);">
     <canvas id="minimap" width="130" height="130" style="border:1px solid lightgrey; margin: 0px;">
       Your browser does not support the HTML5 canvas tag.
     </canvas>
@@ -32,24 +32,124 @@
     <button type="button" class="btn btn-outline-primary" onclick="openMenu()">&#9776;</button>
   </div>
 
-  <div class = "alert alert-primary" id="menu" style="background-color: rgba(0, 0, 0, 0.5); display: none; width: 200px;">
+  <div class="alert alert-primary" id="menu" style="background-color: rgba(0, 0, 0, 0.5); display: none; width: 200px;">
     <div class="center" id="menuCenter">
-      <h3 id="gameMenuTitle"><span class = "badge bg-light text-dark" style = "width: 100%">Game menu</span></h3>
-      <div class="btn-group-vertical" role="group" id="menuButtonGroup" style = "width: 100%;">
+      <h3 id="gameMenuTitle"><span class="badge bg-light text-dark" style="width: 100%">Game menu</span></h3>
+      <div class="btn-group-vertical" role="group" id="menuButtonGroup" style="width: 100%;">
         <button type="button" class="btn btn-primary" id="" onclick="redirect(this.id)">HOME &#x1F3E0;</button>
         <button type="button" class="btn btn-info" onclick="howto()">How to play</button>
-        <button type="button" class="btn btn-dark" onclick="openOptions()">Options &#x2699;</button>
+        <button type="button" class="btn btn-dark"
+          onclick="openOptions(); clearKeyboardMap(); displayKeyboardInverseMap(); displayGUIchoice();">Options
+          &#x2699;</button>
       </div><br><br>
       <button type="button" class="btn btn-light btn-sm" id="CloseMenu" onclick="closeMenu()">Close</button>
     </div>
   </div>
 
-  <div class = "alert alert-dark" id="optionMenu" style = "display: none;">
+  <div class="alert alert-dark" id="optionMenu" style="display: none;">
     <div class="center">
-      This is an option menu, <b>under construction</b>. <br>
-      We will add options to change keyboard control <br>
-      and the design/color scheme of the cells! <br>
-      <button type="button" class="btn btn-light btn-sm" onclick="closeOptions()">Close</button>
+      <h3>Keyboard options</h3>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Move:</th>
+            <th scope="col">🡱</th>
+            <th scope="col">🡰</th>
+            <th scope="col">🡳</th>
+            <th scope="col">🡲</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Key</th>
+            <td><input type="text" class="form-text-lg" id="movingUpKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+            <td><input type="text" class="form-text-lg" id="movingLeftKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+            <td><input type="text" class="form-text-lg" id="movingDownKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+            <td><input type="text" class="form-text-lg" id="movingRightKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="table">
+        <thead>
+          <tr>
+            <th scope="col">Shoot:</th>
+            <th scope="col">🡴</th>
+            <th scope="col">🡵</th>
+            <th scope="col">🡷</th>
+            <th scope="col">🡶</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Key</th>
+            <td><input type="text" class="form-text-lg" id="pressedNWKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+            <td><input type="text" class="form-text-lg" id="pressedNEKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+            <td><input type="text" class="form-text-lg" id="pressedSWKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+            <td><input type="text" class="form-text-lg" id="pressedSEKey"
+                style="text-align:center; text-transform: uppercase;" maxlength="1" size="1"></td>
+          </tr>
+        </tbody>
+      </table>
+      <br>
+
+      <h3>Color/design options</h3>
+      <div class="container">
+        <div class="col"></div>
+        <div class="col">
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="GUIchoice" onclick="setGUIMode()" value="default"
+              id="defaultGUI" checked>
+            <label class="form-check-label" for="defaultGUI">
+              Default
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="GUIchoice" onclick="setGUIMode()" value="boxy"
+              id="boxyGUI">
+            <label class="form-check-label" for="boxyGUI">
+              Boxy
+            </label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="radio" name="GUIchoice" onclick="setGUIMode()" value="custom"
+              id="customGUI">
+            <label class="form-check-label" for="customGUI">
+              Custom
+            </label>
+          </div>
+        </div>
+        <div class="col"></div>
+      </div>
+
+      <table class="table" style="vertical-align: middle;">
+        <thead>
+          <tr>
+            <th scope="col">Cell:</th>
+            <th scope="col">Alive</th>
+            <th scope="col">Dead</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <th scope="row">Custom color</th>
+            <td><input type="color" class="form-control form-control-color" id="customAliveCellColor" style="margin: auto;" onchange="setGUIMode()" value="#595959"
+                title="Choose the color for alive cells"></td>
+            <td><input type="color" class="form-control form-control-color" id="customDeadCellColor" style="margin: auto;" onchange="setGUIMode()" value="#f2f2f2"
+              title="Choose the color for dead cells"></td>
+          </tr>
+        </tbody>
+      </table>
+
+      <button type="button" class="btn btn-primary btn-sm" onclick="setKeyboardMap(); closeOptions();">Save and
+        close</button><br>
+      <!-- <button type="button" class="btn btn-light btn-sm" onclick="closeOptions()">Close</button> -->
     </div>
   </div>
 
@@ -57,7 +157,8 @@
     <div class="center">
       <p>
       <h3>Basic movements</h3>
-      <img src="/static/ggl_howtoplay.png" class="img-fluid" style="max-width: 80%; height: auto;" alt="keyboard controls">
+      <img src="/static/ggl_howtoplay.png" class="img-fluid" style="max-width: 80%; height: auto;"
+        alt="keyboard controls">
       <br><br>
       Move with
       <table style="display: inline-table;">
@@ -72,7 +173,7 @@
           <th><kbd>D</kbd></th>
         </tr>
       </table>,&nbsp;&nbsp;&nbsp;&nbsp;
-      shoot gliders with 
+      shoot gliders with
       <table style="display:inline-table">
         <tr>
           <th><kbd>Y</kbd></th>
@@ -86,7 +187,8 @@
         </tr>
       </table><br><br><br>
       <h3>Basic rules</h3>
-      The black and white cells in the background evolve according to <a href = "https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's game of life</a>. <br>
+      The black and white cells in the background evolve according to <a
+        href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's game of life</a>. <br>
       You die if you step on a black cell. <br>
       Stay alive as long as possible while attacking others with gliders!<br>
       </p>
@@ -112,7 +214,7 @@
     document.body.scrollTop = 0;
     document.body.style.overflow = 'hidden';
 
-    if(window.location.href.split('/').reverse()[0]!=window.ggluser.gameMode.toLowerCase()){
+    if (window.location.href.split('/').reverse()[0] != window.ggluser.gameMode.toLowerCase()) {
       alert("Wrong approach! Please access from our root page")
       redirect("")
     }
@@ -157,6 +259,16 @@
       let y = document.getElementById("optionMenu");
       y.style.display = "none";
     }
+
+    document.body.addEventListener("keyup", function (event) {
+      if (event.key === "Enter") {
+        let y = document.getElementById("optionMenu");
+        if (y.style.display = "block") {
+          setKeyboardMap();
+          closeOptions();
+        }
+      }
+    });
 
   </script>
 </body>

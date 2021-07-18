@@ -14,8 +14,31 @@ if (minimap) {
   minimapContext = minimap.getContext("2d");
 }
 
+GUIchoice = window.localStorage.getItem("GUIchoice");
+if (GUIchoice === null) {
+  GUIchoice = "default";
+}
+GUI_MODE = window.localStorage.getItem("GUI_MODE");
+if (GUI_MODE === null || GUI_MODE == "BACKGROUND") {
+  if (GUIchoice == "default") {
+    GUI_MODE = "PLAIN-NUT";
+  } else if (GUIchoice == "boxy") {
+    GUI_MODE = "PLAIN";
+  } else if (GUIchoice == "custom") {
+    GUI_MODE = "CUSTOM";
+  }
+}
+customAliveCellColor = window.localStorage.getItem("customAliveCellColor");
+if (customAliveCellColor === null) {
+  customAliveCellColor = "#595959";
+}
+customDeadCellColor = window.localStorage.getItem("customDeadCellColor");
+if (customDeadCellColor === null) {
+  customDeadCellColor = "#f2f2f2";
+}
+
 //let GUI_MODE="PLAIN";
-let GUI_MODE = "PLAIN-NUT";
+//let GUI_MODE = "PLAIN-NUT";
 //let GUI_MODE = "SPACEDECAY";
 //let GUI_MODE="NONE";
 
@@ -210,13 +233,29 @@ class colorBoard {
         }
         break;
 
+      case "CUSTOM":
+        switch (tag) {
+          case "cellAlive":
+          case "cellDead":
+            myContext.fillStyle =
+              tag == "cellAlive" ? customAliveCellColor : customDeadCellColor;
+            myContext.fillRect(newx, newy, Cellwidth, Cellheight);
+            break;
+          case "player":
+            myContext.fillStyle = "#33cc33";
+            myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+        }
+        break;
+
       case "BACKGROUND":
         switch (tag) {
           case "cellAlive":
           case "cellDead":
             //myContext.fillStyle = tag == "cellAlive" ? "#595959" : "#f2f2f2";
             myContext.fillStyle =
-              tag == "cellAlive" ? "hsla(0,0%,35%,0.12)" : "hsla(0,0%,95%,0.12)";
+              tag == "cellAlive"
+                ? "hsla(0,0%,35%,0.12)"
+                : "hsla(0,0%,95%,0.12)";
             myContext.fillRect(newx, newy, Cellwidth, Cellheight);
             break;
           case "player":
@@ -253,7 +292,11 @@ class colorBoard {
 
     myContext.fillStyle = color;
     if (GUI_MODE == "BACKGROUND") {
-      let softercolor = color.substring(0, 3)+"a"+color.substring(3,color.length-1)+",0.12)";
+      let softercolor =
+        color.substring(0, 3) +
+        "a" +
+        color.substring(3, color.length - 1) +
+        ",0.12)";
       myContext.fillStyle = softercolor;
     }
     myContext.fillRect(newx, newy, Playerwidth, Playerheight);
@@ -261,6 +304,40 @@ class colorBoard {
     myContext.textAlign = "center";
     myContext.fillText(username, newx + Cellwidth / 2, newy - Cellheight / 4);
   }
+}
+
+function setGUIMode() {
+  GUIchoice = document.querySelector('input[name="GUIchoice"]:checked').value;
+  if (GUIchoice == "default") {
+    GUI_MODE = "PLAIN-NUT";
+  } else if (GUIchoice == "boxy") {
+    GUI_MODE = "PLAIN";
+  } else if (GUIchoice == "custom") {
+    GUI_MODE = "CUSTOM";
+    customAliveCellColor = document.getElementById(
+      "customAliveCellColor"
+    ).value;
+    customDeadCellColor = document.getElementById("customDeadCellColor").value;
+  }
+  console.log(GUI_MODE);
+}
+
+function displayGUIchoice() {
+  if (GUIchoice == "default") {
+    document.getElementById("defaultGUI").checked = true;
+    document.getElementById("boxyGUI").checked = false;
+    document.getElementById("customGUI").checked = false;
+  } else if (GUIchoice == "boxy") {
+    document.getElementById("defaultGUI").checked = false;
+    document.getElementById("boxyGUI").checked = true;
+    document.getElementById("customGUI").checked = false;
+  } else if (GUIchoice == "custom") {
+    document.getElementById("defaultGUI").checked = false;
+    document.getElementById("boxyGUI").checked = false;
+    document.getElementById("customGUI").checked = true;
+  }
+  document.getElementById("customAliveCellColor").value = customAliveCellColor;
+  document.getElementById("customDeadCellColor").value = customDeadCellColor;
 }
 
 function setupVar(_GUI_MODE) {
@@ -396,7 +473,13 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
 
   //if (gamePlayer.alive) cb.drawPixel("myplayer",0,0) ;
   if (minimap) {
-    minimapContext.fillStyle = "#ffffff";
+    if (GUI_MODE == "PLAIN-NUT") {
+      minimapContext.fillStyle = "#ffffff";
+    } else if (GUI_MODE == "PLAIN") {
+      minimapContext.fillStyle = "#595959";
+    } else if (GUI_MODE == "CUSTOM") {
+      minimapContext.fillStyle = customDeadCellColor;
+    }
     minimapContext.fillRect(0, 0, minimap.width, minimap.height);
     // minimapContext.fillStyle = "#000000";
     minimapContext.fillStyle = gamePlayer.color;
