@@ -185,7 +185,9 @@
           <th>&nbsp;&nbsp;</th>
           <th><kbd>K</kbd></th>
         </tr>
-      </table><br><br><br>
+      </table><br><br>
+      <span style="color: #7d7d7d;"> *You can change the keyboard controls in the option menu. </span>
+      <br><br>
       <h3>Basic rules</h3>
       The black and white cells in the background evolve according to <a
         href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life">Conway's game of life</a>. <br>
@@ -224,6 +226,19 @@
       if (event.key === "Escape") {
         event.preventDefault();
         openMenu();
+      } else if (event.key === "Enter") {
+        event.preventDefault();
+        let x = document.getElementById("menu");
+        let y = document.getElementById("optionMenu");
+        let z = document.getElementById("HowToPlay");
+        if (z.style.display == "block") {
+          closehowto();
+        } else if (x.style.display == "block") {
+          closeMenu();
+        } else if (y.style.display == "block") {
+          setKeyboardMap();
+          closeOptions();
+        }
       }
     });
 
@@ -240,12 +255,16 @@
       x.style.display = "none";
     }
     function howto() {
-      let x = document.getElementById("HowToPlay");
-      x.style.display = "block";
+      let x = document.getElementById("menu");
+      x.style.display = "none";
+      let y = document.getElementById("HowToPlay");
+      y.style.display = "block";
     }
     function closehowto() {
-      let x = document.getElementById("HowToPlay");
-      x.style.display = "none";
+      let x = document.getElementById("menu");
+      x.style.display = "block";
+      let y = document.getElementById("HowToPlay");
+      y.style.display = "none";
     }
     function openOptions() {
       let x = document.getElementById("menu");
@@ -259,16 +278,6 @@
       let y = document.getElementById("optionMenu");
       y.style.display = "none";
     }
-
-    document.body.addEventListener("keyup", function (event) {
-      if (event.key === "Enter") {
-        let y = document.getElementById("optionMenu");
-        if (y.style.display = "block") {
-          setKeyboardMap();
-          closeOptions();
-        }
-      }
-    });
 
   </script>
 </body>
