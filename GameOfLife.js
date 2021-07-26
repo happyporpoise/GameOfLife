@@ -120,7 +120,7 @@ class Game {
     this.players = {};
     this.towerids = ["RandomBot1", "RandomBot2", "RandomBot3"];
     // this.smartBotIDs = ["Dodger (Bot)", "Follower (Bot)", "Hunter (Bot)"];
-    this.smartBotIDs = [];//["Dodger (Bot)", "Hunter (Bot)"];
+    this.smartBotIDs = ["Dodger (Bot)", "Hunter (Bot)"];
 
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
