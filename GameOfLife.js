@@ -6,7 +6,7 @@ const ggllib = require("./Library.js");
 const fs = require("fs");
 let ranking = JSON.parse(
   fs.readFileSync(
-    "ranking.txt",
+    "ranking.json",
     { encoding: "utf8", flag: "r" },
     (err, data) => {
       if (err) return console.log(err);
@@ -15,7 +15,7 @@ let ranking = JSON.parse(
 );
 
 function saveRanking(filename) {
-  fs.writeFile(filename, JSON.stringify(ranking), function (err) {
+  fs.writeFile(filename, JSON.stringify(ranking, null, '\t'), function (err) {
     if (err) return console.log(err);
     console.log(filename + " saved");
     console.log(JSON.stringify(ranking));
@@ -95,7 +95,7 @@ class Game {
     this.numColumns = numColumns;
     this.numRows = numRows;
 
-    this.mapSum = true;
+    this.mapClear = false;
 
     //gameMode is a literally game mode(eg SINGLE:12) and groupName is the chat room id for the io
     this.groupName = groupName;
@@ -119,7 +119,8 @@ class Game {
     );
     this.bufferView = new Uint32Array(this.buffer);
 
-    setInterval(this.update.bind(this), 1000 / 10);
+    // ***** dont forget to clear this interval when you delete the game object *****
+    this.interval=setInterval(this.update.bind(this), 1000 / 10);
   }
 
   update() {
@@ -130,6 +131,9 @@ class Game {
     this.gliderUpdate();
     if (this.groupName == "FFA") {
       this.towerUpdate();
+      this.smartBotUpdate();
+    }
+    if(this.gameMode[0]=="SINGLE" && this.gameMode[1]=="2"){
       this.smartBotUpdate();
     }
     this.updateCoolTime();
@@ -210,12 +214,20 @@ class Game {
       this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
     }
 
-    if (this.groupName != "FFA") {
-      this.mapSum = false;
-      for (let i = 0; i < this.gameObjects.length; i++) {
-        if (this.gameObjects[i].alive) {
-          this.mapSum = true;
-          return;
+    if (this.gameMode[0] == "SINGLE") {
+      if(this.gameMode[1]=='2'){
+        this.mapClear = false;
+        if(!("Hunter (Bot)" in this.players)){
+          this.mapClear=true;
+        }
+      }
+      else{
+        this.mapClear = true;
+        for (let i = 0; i < this.gameObjects.length; i++) {
+          if (this.gameObjects[i].alive) {
+            this.mapClear = false;
+            return;
+          }
         }
       }
     }
@@ -259,7 +271,7 @@ class Game {
   }
 
   checkPlayerIsAlive() {
-    if (!this.mapSum && this.groupName in this.players) {
+    if (this.mapClear && this.gameMode[0]=="SINGLE") {
       let i;
       for (i = 0; i < ranking[this.gameMode[1]].length; i++) {
         if (this.gametime < ranking[this.gameMode[1]][i].time) {
@@ -271,7 +283,7 @@ class Game {
         time: this.gametime,
       });
       ranking[this.gameMode[1]] = ranking[this.gameMode[1]].slice(0, 100);
-      saveRanking("ranking.txt");
+      saveRanking("ranking.json");
       this.io
         .to(this.groupName)
         .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
@@ -344,7 +356,7 @@ class Game {
 
   smartBotUpdate() {
     this.smartBotIDs.forEach((id) => {
-      if (!(id in this.players)) {
+      if (!(id in this.players) ) {
         this.addPlayer(id, id);
       }
       let x = this.players[id].gridX;
@@ -1178,18 +1190,34 @@ class Game {
   }
 
   addPlayer(socketid, name) {
-    let randCell =
-      this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
-    if (randCell.alive == 0) {
-      this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
+    if(this.gameMode[0]=='SINGLE' && !(this.smartBotIDs.includes(name)) && !(this.towerids.includes(name))){
+      this.players[socketid] = new Player(0, 0, name);
       this.players[socketid].initTime = this.gametime;
-    } else {
-      this.addPlayer(socketid, name);
-    }
-    if (this.groupName != "FFA") {
       this.io
         .to(this.groupName)
         .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 10));
+      if(this.gameMode[1]=='0'){
+        this.players['indicator1'] = new Player(2, -2, 'SE');
+        this.players['indicator2'] = new Player(19, 5, 'NW');
+        this.players['indicator3'] = new Player(27, 2, 'NE');
+        this.players['indicator4'] = new Player(46, 5, 'NW');
+        this.players['indicator5'] = new Player(81, 1, 'SW');
+        this.players['indicator6'] = new Player(102, 6, 'NE');
+        this.players['indicator7'] = new Player(117, 9, 'NE');
+      };
+      if(this.gameMode[1]=='2'){
+        this.smartBotIDs=["Hunter (Bot)"];
+        this.addPlayer("Hunter (Bot)", "Hunter (Bot)");
+      };
+    }
+    else{
+      let randCell = this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
+      if (randCell.alive == 0) {
+        this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
+        this.players[socketid].initTime = this.gametime;
+      } else {
+        this.addPlayer(socketid, name);
+      }  
     }
   }
 

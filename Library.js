@@ -38,8 +38,14 @@ function randomChoice(li) {
 }
 
 const setSingleLevel={
-  '0': (game) => putShape(game,shapeToCells(randomChoice(listOfShapes.slice(1))),0,0),
-  '1': (game) => mapShape(game,0,0,game.numColumns,game.numRows,()=>(Math.random() > 0.9)),
+  '0': (game) => {let xoffset=5;
+    practiceField.forEach((el)=>{
+      putShape(game,shapeToCells(el[0]),xoffset,el[2]);
+      xoffset+=el[1];
+  })}, // practice
+  '1': (game) => mapShape(game,0,0,game.numColumns,game.numRows,()=>(Math.random() > 0.9)), // clear mode
+  '2': (game) => mapShape(game,0,0,game.numColumns,game.numRows,()=> 0 ), // hunter
+  '3': (game) => putShape(game,shapeToCells(randomChoice(listOfShapes.slice(1))),0,0), // zoo
 }
 
 function putShape(game,seq,posX,posY) {
@@ -65,6 +71,25 @@ module.exports = {
 };
 
 // The following library of lives is mostly from conwaylife.com/wiki
+
+const practiceField=[
+  ['OO\nOO',12,1],
+  ['.O.\nO.O\nO.O\n.O.',12,0],
+  ['.OO.\nO..O\n.OO.',12,0],
+  ['.O.\nO.O\n.OO',12,0],
+  ['.O.\nO.O\nOO.',12,0],
+  ['.OO\nO.O\nOO.',12,0],
+  ['.O..\nO.O.\nO..O\n.OO.',12,0],
+  ['..O.\n.O.O\nO..O\n.OO.',12,0],
+  ['...\nOOO\n...',12,0],
+  ['.O.\n.O.\n.O.',3,0],
+  ['...\nOOO\n...',3,-3],
+  ['.O.\n.O.\n.O.',-3,0],
+  ['...\nOOO\n...',15,3],
+  ['.OO.\nO..O\nO..O\n.OO.',12,0],
+  ['OOO.\n.OOO',12,0],
+  ['.O\nOO\nOO\nO.',12,-1],
+];
 
 const emptyShape = ``;
 

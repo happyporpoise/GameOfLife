@@ -14,8 +14,8 @@ app.get('/', (req, res) => {
   res.sendFile(__dirname + '/src/client/html/main.html');
 });
 
-app.get('/ranking.txt', (req, res) => {
-  res.sendFile(__dirname + '/ranking.txt');
+app.get('/ranking.json', (req, res) => {
+  res.sendFile(__dirname + '/ranking.json');
 });
 
 app.get('/ffa', (req, res) => {
@@ -112,7 +112,13 @@ io.on('connection', (socket) => {
 
       if(gameMode[0]=="SINGLE"){
         socket.join(socket.id);
-        if(gameMode[1]=='1'){
+        if(gameMode[1]=='0'){
+          games[socket.id]=new Game(io,socket.id,gameMode,162,30);
+        }
+        else if(gameMode[1]=='1'){
+          games[socket.id]=new Game(io,socket.id,gameMode,57,57);
+        }
+        else if(gameMode[1]=='2'){
           games[socket.id]=new Game(io,socket.id,gameMode,50,50);
         }
         else{
@@ -135,7 +141,10 @@ io.on('connection', (socket) => {
 socket.on('disconnect',(reason)=>{
     console.log(reason);
     if(socket.id in games['FFA'].players) delete games['FFA'].players[socket.id];
-    if(socket.id in games) delete games[socket.id];
+    if(socket.id in games){
+      clearInterval(games[socket.id].interval)
+      delete games[socket.id]
+    };
     usercon.delUser('socketid',socket.id);
   });
 });
