@@ -14,6 +14,20 @@ let ranking = JSON.parse(
   )
 );
 
+function insertRanking(type,name,time){
+  let i;
+  for (i = 0; i < ranking[type].length; i++) {
+    if (time < ranking[type][i].time) {
+      break;
+    }
+  }
+  ranking[type].splice(i, 0, {
+    name: name,
+    time: time,
+  });
+  //ranking[type] = ranking[type].slice(0, 100);
+  return i;
+}
 function saveRanking(filename) {
   fs.writeFile(filename, JSON.stringify(ranking, null, '\t'), function (err) {
     if (err) return console.log(err);
@@ -106,7 +120,7 @@ class Game {
     this.players = {};
     this.towerids = ["RandomBot1", "RandomBot2", "RandomBot3"];
     // this.smartBotIDs = ["Dodger (Bot)", "Follower (Bot)", "Hunter (Bot)"];
-    this.smartBotIDs = ["Dodger (Bot)", "Hunter (Bot)"];
+    this.smartBotIDs = [];//["Dodger (Bot)", "Hunter (Bot)"];
 
     // this.lastUpdateTime = Date.now();
     this.shouldSendUpdate = false;
@@ -148,7 +162,7 @@ class Game {
       playerNamePosAndColor: this.getPlayerNamePosAndColor(),
     });
     if (this.groupName == "FFA") {
-      this.rankingUpdate();
+      this.FFARankingUpdate();
       this.io.to(this.groupName).emit("drawScoreBoard", ffaRanking);
     }
     this.checkPlayerIsAlive();
@@ -272,22 +286,10 @@ class Game {
 
   checkPlayerIsAlive() {
     if (this.mapClear && this.gameMode[0]=="SINGLE") {
-      let i;
-      for (i = 0; i < ranking[this.gameMode[1]].length; i++) {
-        if (this.gametime < ranking[this.gameMode[1]][i].time) {
-          break;
-        }
-      }
-      ranking[this.gameMode[1]].splice(i, 0, {
-        name: this.players[this.groupName].name,
-        time: this.gametime,
-      });
-      ranking[this.gameMode[1]] = ranking[this.gameMode[1]].slice(0, 100);
+      let i = insertRanking(this.gameMode[1],this.players[this.groupName].name, this.gametime);
       saveRanking("ranking.json");
-      this.io
-        .to(this.groupName)
-        .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
-      this.io.to(this.groupName).emit("singleClear", i, this.gametime);
+      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
+      this.io.to(this.groupName).emit("gameClear", i, this.gametime);
       delete this.players[this.groupName];
     }
 
@@ -297,10 +299,17 @@ class Game {
         this.isAlive(
           this.players[socketid].gridX,
           this.players[socketid].gridY
-        ) == true
+        )
       ) {
-        if (!(socketid in this.towerids) && !(socketid in this.smartBotIDs)) {
-          this.io.to(socketid).emit("dead");
+        if (!(this.smartBotIDs.includes(socketid)) && !(this.towerids.includes(socketid))) {   
+          if(this.gameMode=="FFA" && ffaRanking[0].name==this.players[socketid].name){
+            let i = insertRanking('FFA',this.players[socketid].name, -this.players[socketid].age);
+            saveRanking("ranking.json");
+            this.io.to(socketid).emit("gameClear",i,this.players[socketid].age);
+          }
+          else{
+            this.io.to(socketid).emit("dead");
+          }
         }
         delete this.players[socketid];
       }
@@ -1146,7 +1155,7 @@ class Game {
     });
   }
 
-  rankingUpdate() {
+  FFARankingUpdate() {
     ffaRanking = [];
     Object.keys(this.players).forEach((id) => {
       this.players[id].age = this.gametime - this.players[id].initTime;

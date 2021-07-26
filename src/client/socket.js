@@ -165,11 +165,9 @@ function setGame() {
         socket.on("dead", () => {
           gameEnd("dead");
         });
-        if (gameMode.slice(0,6) == "SINGLE") {
-          socket.on("singleClear", (i, time) => {
-            gameEnd("singleClear", i, time);
-          });
-        }
+        socket.on("gameClear", (i, time) => {
+          gameEnd("gameClear", i, time);
+        });
 
         window.addEventListener(
           "keydown",
@@ -208,7 +206,7 @@ function gameEnd(tag, i, time) {
   restartButton.onclick = function(){redirect(window.ggluser.gameMode)};
   y.insertBefore(restartButton, y.firstChild);
 
-  if(tag == "singleClear"){
+  if(tag == "gameClear"){
     let deadalerth3 = document.createElement("h3");
     let deadalert = document.createElement("span");
     deadalert.className = "badge bg-warning text-dark";
@@ -222,7 +220,7 @@ function gameEnd(tag, i, time) {
   let deadalert = document.createElement("span");
   deadalert.className = "badge bg-warning text-dark";
   deadalert.style.width = "100%";
-  deadalert.textContent = (tag == "singleClear") ? "Game clear 🥳" :"Game over 😢";
+  deadalert.textContent = (tag == "gameClear") ? "Game clear 🥳" :"Game over 😢";
   deadalerth3.appendChild(deadalert);
   y.insertBefore(deadalerth3, y.firstChild);
 
