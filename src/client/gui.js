@@ -198,7 +198,7 @@ class colorBoard {
     }
   }
 
-  drawPixel(tag, x, y) {
+  drawPixel(tag, x, y, owner, playerNamePosAndColor) {
     let newx =
       mod(x + Math.floor(this.numColumns / 2), this.numColumns) * Cellwidth +
       Math.floor(myCanvas.width / 2 - (this.numColumns / 2) * Cellwidth);
@@ -223,8 +223,15 @@ class colorBoard {
       case "PLAIN-NUT":
         switch (tag) {
           case "cellAlive":
+            if (owner == "neutral") {
+              myContext.fillStyle = "#595959";
+            } else if (owner in playerNamePosAndColor){
+              myContext.fillStyle = playerNamePosAndColor[owner].color;
+            }
+            myContext.fillRect(newx, newy, Playerwidth, Playerheight);
+            break;
           case "cellDead":
-            myContext.fillStyle = tag == "cellAlive" ? "#595959" : "#f2f2f2";
+            myContext.fillStyle = "#f2f2f2";
             myContext.fillRect(newx, newy, Cellwidth, Cellheight);
             break;
           case "player":
@@ -408,7 +415,7 @@ function drawScoreBoard(ranking) {
   }
 }
 
-function draw(id, _gametime, buffer, playerNamePosAndColor) {
+function draw(id, _gametime, buffer, playerNamePosAndColor, ownerList) {
   myCanvas.width = window.innerWidth;
   myCanvas.height = window.innerHeight;
   myContext.fillStyle = "#000000";
@@ -450,7 +457,9 @@ function draw(id, _gametime, buffer, playerNamePosAndColor) {
             ]
           : ""),
       window.cb.gridX[i] - gamePlayer.gridX,
-      window.cb.gridY[i] - gamePlayer.gridY
+      window.cb.gridY[i] - gamePlayer.gridY, 
+      ownerList[i], 
+      playerNamePosAndColor
     );
   }
 
@@ -512,7 +521,8 @@ function render() {
       window.ggluser.socketid,
       currentState.gametime,
       currentState.buffer,
-      currentState.playerNamePosAndColor
+      currentState.playerNamePosAndColor,
+      currentState.ownerList
     );
   }
 }
