@@ -19,11 +19,11 @@ app.get('/ranking.json', (req, res) => {
 });
 
 app.get('/ffa', (req, res) => {
-  res.sendFile(__dirname + '/src/client/html/ffa.html');
+  res.sendFile(__dirname + '/src/client/html/arena.html');
 });
 
 app.get('/single', (req, res) => {
-  res.sendFile(__dirname + '/src/client/html/ffa.html');
+  res.sendFile(__dirname + '/src/client/html/arena.html');
 });
 
 app.get('/src/client/:fileName', function (req, res) {
