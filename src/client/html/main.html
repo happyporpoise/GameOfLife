@@ -7,6 +7,7 @@
     integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
   <link rel="stylesheet" href="/src/client/index.css">
   <link rel="icon" href="/static/glider.png">
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.1/jquery.min.js" type="text/javascript"></script>
   <style>
     html,
     body {
@@ -93,17 +94,16 @@
       </div>
     </div>
     <div class="alert alert-light" id="SingleMenu" style="display: none; z-index: 100;">
-      <div class="center">
+      <div class="center" style="line-height: 200%;">
         <h2>Choose level</h2>
-        <b>level 0: clear out practice</b><br>
-        <b>level 1: clear out 57x57,</b><br>
-        <b>level 2: hunter 1 on 1,</b><br>
-        <b>level 3: life zoo,</b><br>
-        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(0)" data-content="clear out practice"
-          rel="popover" data-placement="top" data-trigger="hover">level 0</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(1)">level 1</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(2)">level 2</button>
-        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(3)">level 3</button><br><br>
+        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(0)" data-toggle="tooltip"
+          data-placement="top" title="clear out practice">level 0</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(1)" data-toggle="tooltip"
+          data-placement="top" title="clear out 57x57">level 1</button><br>
+        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(2)" data-toggle="tooltip"
+          data-placement="top" title="hunter 1 on 1">level 2</button>
+        <button type="button" class="btn btn-primary btn-sm" onclick="singleLevels(3)" data-toggle="tooltip"
+          data-placement="top" title="life zoo">level 3</button><br><br>
         <button type="button" class="btn btn-light btn-sm" onclick="closeSingleMenu()">Back to HOME</button>
       </div>
     </div>
@@ -236,9 +236,10 @@
 
     listenBG();
 
-    $(document).ready(function () {
-      $('[data-toggle="popover"]').popover();
-    });
+    $(function () {
+      $('[data-toggle="tooltip"]').tooltip()
+    })
+
   </script>
   <script src="https://code.jquery.com/jquery-3.2.1.slim.min.js"
     integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN"
