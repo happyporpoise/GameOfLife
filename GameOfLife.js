@@ -15,7 +15,7 @@ let ranking = JSON.parse(
   )
 );
 
-function insertRanking(type,name,time){
+function insertRanking(type, name, time) {
   let i;
   for (i = 0; i < ranking[type].length; i++) {
     if (time < ranking[type][i].time) {
@@ -30,7 +30,7 @@ function insertRanking(type,name,time){
   return i;
 }
 function saveRanking(filename) {
-  fs.writeFile(filename, JSON.stringify(ranking, null, '\t'), function (err) {
+  fs.writeFile(filename, JSON.stringify(ranking, null, "\t"), function (err) {
     if (err) return console.log(err);
     console.log(filename + " saved");
     console.log(JSON.stringify(ranking));
@@ -67,6 +67,7 @@ class Cell {
     // Store the position of this cell in the grid
     this.gridX = gridX;
     this.gridY = gridY;
+    this.owner = "";
 
     this.alive = false; // 0.9;
   }
@@ -137,7 +138,7 @@ class Game {
     this.smartBotUpdate = botlib.smartBotUpdate.bind(this);
 
     // ***** dont forget to clear this interval when you delete the game object *****
-    this.interval=setInterval(this.update.bind(this), 1000 / 10);
+    this.interval = setInterval(this.update.bind(this), 1000 / 10);
   }
 
   update() {
@@ -150,7 +151,7 @@ class Game {
       this.towerUpdate();
       this.smartBotUpdate();
     }
-    if(this.gameMode[0]=="SINGLE" && this.gameMode[1]=="2"){
+    if (this.gameMode[0] == "SINGLE" && this.gameMode[1] == "2") {
       this.smartBotUpdate();
     }
     this.updateCoolTime();
@@ -163,6 +164,7 @@ class Game {
       // playerPos: this.getPlayerPos(),
       // playerColor: this.getPlayerColor(),
       playerNamePosAndColor: this.getPlayerNamePosAndColor(),
+      ownerList: this.getOwnerList(),
     });
     if (this.groupName == "FFA") {
       this.FFARankingUpdate();
@@ -185,6 +187,9 @@ class Game {
 
   isAlive(x, y) {
     return this.gridToObj(x, y).alive;
+  }
+  ownerOf(x, y) {
+    return this.gridToObj(x, y).owner;
   }
 
   gridToIndex(x, y) {
@@ -212,16 +217,84 @@ class Game {
           this.isAlive(x, y + 1) +
           this.isAlive(x + 1, y + 1);
         let centerObj = this.gridToObj(x, y);
+        let aliveNeighbors = [];
+        if (this.isAlive(x - 1, y - 1)) {
+          aliveNeighbors.push([-1, -1]);
+        }
+        if (this.isAlive(x, y - 1)) {
+          aliveNeighbors.push([0, -1]);
+        }
+        if (this.isAlive(x + 1, y - 1)) {
+          aliveNeighbors.push([1, -1]);
+        }
+        if (this.isAlive(x - 1, y)) {
+          aliveNeighbors.push([-1, 0]);
+        }
+        if (this.isAlive(x + 1, y)) {
+          aliveNeighbors.push([1, 0]);
+        }
+        if (this.isAlive(x - 1, y + 1)) {
+          aliveNeighbors.push([-1, 1]);
+        }
+        if (this.isAlive(x, y + 1)) {
+          aliveNeighbors.push([0, 1]);
+        }
+        if (this.isAlive(x + 1, y + 1)) {
+          aliveNeighbors.push([1, 1]);
+        }
 
         if (numAlive == 2) {
           // Do nothing
           centerObj.nextAlive = centerObj.alive;
+          if (centerObj.alive) {
+            if (
+              this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
+                .owner ==
+              this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
+                .owner
+            ) {
+              centerObj.nextOwner = this.gridToObj(
+                x + aliveNeighbors[0][0],
+                y + aliveNeighbors[0][1]
+              ).owner;
+            } else {
+              centerObj.nextOwner = "neutral";
+            }
+          }
         } else if (numAlive == 3) {
           // Make alive
           centerObj.nextAlive = true;
+          if (
+            this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
+              .owner ==
+              this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
+                .owner ||
+            this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
+              .owner ==
+              this.gridToObj(x + aliveNeighbors[2][0], y + aliveNeighbors[2][1])
+                .owner
+          ) {
+            centerObj.nextOwner = this.gridToObj(
+              x + aliveNeighbors[0][0],
+              y + aliveNeighbors[0][1]
+            ).owner;
+          } else if (
+            this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
+              .owner ==
+            this.gridToObj(x + aliveNeighbors[2][0], y + aliveNeighbors[2][1])
+              .owner
+          ) {
+            centerObj.nextOwner = this.gridToObj(
+              x + aliveNeighbors[1][0],
+              y + aliveNeighbors[1][1]
+            ).owner;
+          } else {
+            centerObj.nextOwner = "neutral";
+          }
         } else {
           // Make dead
           centerObj.nextAlive = false;
+          centerObj.nextOwner = "";
         }
       }
     }
@@ -229,16 +302,16 @@ class Game {
     // Apply the new state to the cells
     for (let i = 0; i < this.gameObjects.length; i++) {
       this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
+      this.gameObjects[i].owner = this.gameObjects[i].nextOwner;
     }
 
     if (this.gameMode[0] == "SINGLE") {
-      if(this.gameMode[1]=='2'){
+      if (this.gameMode[1] == "2") {
         this.mapClear = false;
-        if(!("Hunter (Bot)" in this.players)){
-          this.mapClear=true;
+        if (!("Hunter (Bot)" in this.players)) {
+          this.mapClear = true;
         }
-      }
-      else{
+      } else {
         this.mapClear = true;
         for (let i = 0; i < this.gameObjects.length; i++) {
           if (this.gameObjects[i].alive) {
@@ -288,30 +361,61 @@ class Game {
   }
 
   checkPlayerIsAlive() {
-    if (this.mapClear && this.gameMode[0]=="SINGLE") {
-      let i = insertRanking(this.gameMode[1],this.players[this.groupName].name, this.gametime);
+    if (this.mapClear && this.gameMode[0] == "SINGLE") {
+      let i = insertRanking(
+        this.gameMode[1],
+        this.players[this.groupName].name,
+        this.gametime
+      );
       saveRanking("ranking.json");
-      this.io.to(this.groupName).emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
+      this.io
+        .to(this.groupName)
+        .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 15));
       this.io.to(this.groupName).emit("gameClear", i, this.gametime);
       delete this.players[this.groupName];
     }
 
     Object.keys(this.players).forEach((socketid) => {
+      let ownerOfTheCell = this.ownerOf(
+        this.players[socketid].gridX,
+        this.players[socketid].gridY
+      );
       if (
         this.players[socketid].alive &&
         this.isAlive(
           this.players[socketid].gridX,
           this.players[socketid].gridY
-        )
+        ) &&
+        ownerOfTheCell != socketid
       ) {
-        if (!(this.smartBotIDs.includes(socketid)) && !(this.towerids.includes(socketid))) {   
-          if(this.gameMode=="FFA" && ffaRanking[0].name==this.players[socketid].name){
-            let i = insertRanking('FFA',this.players[socketid].name, -this.players[socketid].age);
-            saveRanking("ranking.json");
-            this.io.to(socketid).emit("gameClear",i,this.players[socketid].age);
+        let ownerIsAPlayer = ownerOfTheCell in this.players;
+        for (let i = 0; i < this.gameObjects.length; i++) {
+          if (this.gameObjects[i].owner == socketid) {
+            this.gameObjects[i].owner = ownerIsAPlayer? ownerOfTheCell : "neutral";
           }
-          else{
-            this.io.to(socketid).emit("dead");
+        }
+        if (ownerIsAPlayer) {
+          this.players[ownerOfTheCell].initTime -= this.players[socketid].age/2;
+        }
+        if (
+          !this.smartBotIDs.includes(socketid) &&
+          !this.towerids.includes(socketid)
+        ) {
+          if (
+            this.gameMode == "FFA" &&
+            ffaRanking[0].name == this.players[socketid].name
+          ) {
+            let i = insertRanking(
+              "FFA",
+              this.players[socketid].name,
+              -this.players[socketid].age
+            );
+            saveRanking("ranking.json");
+            this.io
+              .to(socketid)
+              .emit("gameClear", i, this.players[socketid].age);
+          } else {
+            this.io.to(socketid).emit("dead", ownerOfTheCell);
           }
         }
         delete this.players[socketid];
@@ -379,6 +483,9 @@ class Game {
         color: this.players[id].color,
       });
     });
+    ffaRanking.sort(function (a, b) {
+      return b.time - a.time;
+    })
   }
 
   gliderUpdate() {
@@ -395,7 +502,8 @@ class Game {
             this.self,
             ggllib.shootCompiled[direction],
             this.players[id].gridX,
-            this.players[id].gridY
+            this.players[id].gridY,
+            id
           );
           didntshoot = false;
         }
@@ -413,34 +521,42 @@ class Game {
   }
 
   addPlayer(socketid, name) {
-    if(this.gameMode[0]=='SINGLE' && !(this.smartBotIDs.includes(name)) && !(this.towerids.includes(name))){
+    if (
+      this.gameMode[0] == "SINGLE" &&
+      !this.smartBotIDs.includes(name) &&
+      !this.towerids.includes(name)
+    ) {
       this.players[socketid] = new Player(0, 0, name);
       this.players[socketid].initTime = this.gametime;
       this.io
         .to(this.groupName)
         .emit("drawScoreBoard", ranking[this.gameMode[1]].slice(0, 10));
-      if(this.gameMode[1]=='0'){
-        this.players['indicator1'] = new Player(2, -2, 'SE');
-        this.players['indicator2'] = new Player(19, 5, 'NW');
-        this.players['indicator3'] = new Player(27, 2, 'NE');
-        this.players['indicator4'] = new Player(46, 5, 'NW');
-        this.players['indicator5'] = new Player(81, 1, 'SW');
-        this.players['indicator6'] = new Player(102, 6, 'NE');
-        this.players['indicator7'] = new Player(117, 9, 'NE');
-      };
-      if(this.gameMode[1]=='2'){
-        this.smartBotIDs=["Hunter (Bot)"];
+      if (this.gameMode[1] == "0") {
+        this.players["indicator1"] = new Player(2, -2, "SE");
+        this.players["indicator2"] = new Player(19, 5, "NW");
+        this.players["indicator3"] = new Player(27, 2, "NE");
+        this.players["indicator4"] = new Player(46, 5, "NW");
+        this.players["indicator5"] = new Player(81, 1, "SW");
+        this.players["indicator6"] = new Player(102, 6, "NE");
+        this.players["indicator7"] = new Player(117, 9, "NE");
+      }
+      if (this.gameMode[1] == "2") {
+        this.smartBotIDs = ["Hunter (Bot)"];
         this.addPlayer("Hunter (Bot)", "Hunter (Bot)");
-      };
-    }
-    else{
-      let randCell = this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
+      }
+    } else {
+      let randCell =
+        this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
       if (randCell.alive == 0) {
-        this.players[socketid] = new Player(randCell.gridX, randCell.gridY, name);
+        this.players[socketid] = new Player(
+          randCell.gridX,
+          randCell.gridY,
+          name
+        );
         this.players[socketid].initTime = this.gametime;
       } else {
         this.addPlayer(socketid, name);
-      }  
+      }
     }
   }
 
@@ -491,6 +607,14 @@ class Game {
       };
     });
     return namePosAndCol;
+  }
+
+  getOwnerList() {
+    let ownerList = [];
+    for (let i = 0; i < this.gameObjects.length; i++) {
+      ownerList.push(this.gameObjects[i].owner);
+    }
+    return ownerList;
   }
 }
 
