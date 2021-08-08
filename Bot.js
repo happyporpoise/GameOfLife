@@ -1,6 +1,270 @@
-function randomChoice(li) {
-    const ind = Math.floor(Math.random() * li.length);
-    return li[ind];
+const { randomChoice } = require("./Library.js");
+
+const dirInfo={
+  "NW":{vec:[-1,-1], mov:{movingUp:true,movingDown:false,movingLeft:true,movingRight:false}},
+  "N":{ vec:[0,-1], mov:{movingUp:true,movingDown:false,movingLeft:false,movingRight:false}},
+  "NE":{vec:[+1,-1], mov:{movingUp:true,movingDown:false,movingLeft:false,movingRight:true}},
+  "W":{ vec:[-1,0], mov:{movingUp:false,movingDown:false,movingLeft:true,movingRight:false}},
+  "E":{ vec:[+1,0], mov:{movingUp:false,movingDown:false,movingLeft:false,movingRight:true}},
+  "SW":{vec:[-1,+1], mov:{movingUp:false,movingDown:true,movingLeft:true,movingRight:false}},
+  "S":{ vec:[0,+1], mov:{movingUp:false,movingDown:true,movingLeft:false,movingRight:false}},
+  "SE":{vec:[+1,+1], mov:{movingUp:false,movingDown:true,movingLeft:false,movingRight:true}},
+}
+
+function isSafe(gameObj,x,y,dir){
+  const newx = x + dirInfo[dir].vec[0];
+  const newy = y + dirInfo[dir].vec[1];
+  return (!(gameObj.numNearbyAlive(newx, newy) in [, , 2, 3]) ||
+      (gameObj.isAlive(newx, newy)  == false &&
+      gameObj.numNearbyAlive(newx, newy) != 3));
+}
+
+function getSafeDir(gameObj,x,y){
+  let safeDirections=[];
+  Object.keys(dirInfo).forEach((dir)=>{
+    if (isSafe(gameObj,x,y,dir)) {
+      safeDirections.push(dir);
+    }
+  });
+  return safeDirections;
+}
+
+function moveDir(player,dir){
+  if(!(dir in dirInfo)){
+    player.movingUp = false;
+    player.movingDown = false;
+    player.movingLeft = false;
+    player.movingRight = false;
+    return;
+  }
+  const mov=dirInfo[dir].mov;
+  Object.keys(mov).forEach((dir)=>{
+    player[dir] = mov[dir];
+  })
+}
+
+function shootDir(player,dir){
+  player.pressedNW = false;
+  player.pressedNE = false;
+  player.pressedSW = false;
+  player.pressedSE = false;
+  if(dir.length==2){
+    player['pressed'+dir]=true;
+  }
+}
+
+function moveToSafeDir(gameObj,id,x,y){
+  const safeDirections = getSafeDir(gameObj,x,y);
+  const player = gameObj.players[id];
+  const dir = (safeDirections.length==0) ? "nomove" : randomChoice(safeDirections);
+  moveDir(player,dir);
+}
+
+function getRelPos(gameObj,id2,x,y){
+  let x2 = gameObj.players[id2].gridX;
+  let y2 = gameObj.players[id2].gridY;
+  if (Math.abs(x2 + gameObj.numColumns - x) < Math.abs(x2 - x)) {
+    x2 = x2 + gameObj.numColumns;
+  } else if (Math.abs(x2 - gameObj.numColumns - x) < Math.abs(x2 - x)) {
+    x2 = x2 - gameObj.numColumns;
+  }
+  if (Math.abs(y2 + gameObj.numRows - y) < Math.abs(y2 - y)) {
+    y2 = y2 + gameObj.numRows;
+  } else if (Math.abs(y2 - gameObj.numRows - y) < Math.abs(y2 - y)) {
+    y2 = y2 - gameObj.numRows;
+  }
+  return [x2,y2];
+}
+
+function dodger(id,x,y){
+  if (this.numNearbyAlive(x, y) === 3) {
+    moveToSafeDir(this,id,x,y);
+  } else {
+    moveDir(this.players[id],'nomove')
+  }
+
+  let someoneOn = "noOne";
+  Object.keys(this.players).every((id2) => {
+    if (id2 == "Dodger (Bot)") { return true; }
+
+    let [x2,y2]=getRelPos(this,id2,x,y);
+    let attackrange = 6;
+    if (
+      x2 < x &&
+      x2 >= x - attackrange &&
+      y2 < y &&
+      y2 >= y - attackrange
+    ) {
+      someoneOn='NW';
+      return false;
+    } else if (
+      x2 > x &&
+      x2 <= x + attackrange &&
+      y2 < y &&
+      y2 >= y - attackrange
+    ) {
+      someoneOn = 'NE' ;
+      return false;
+    } else if (
+      x2 < x &&
+      x2 >= x - attackrange &&
+      y2 > y &&
+      y2 <= y + attackrange
+    ) {
+      someoneOn = 'SW';
+      return false;
+    } else if (
+      x2 > x &&
+      x2 <= x + attackrange &&
+      y2 > y &&
+      y2 <= y + attackrange
+    ) {
+      someoneOn = 'SE' ;
+      return false;
+    }
+
+    return true;
+  });
+
+  shootDir(this.players[id],someoneOn);
+
+}
+
+
+const followerInfo={
+  "NW":(x,y,x2,y2)=>(x2 < x && y2 < y),
+  "N" :(x,y,x2,y2)=>(x2 === x && y2 < y),
+  "NE":(x,y,x2,y2)=>(x2 > x && y2 < y),
+  "W" :(x,y,x2,y2)=>(x2 < x && y2 === y),
+  "E" :(x,y,x2,y2)=>(x2 > x && y2 === y),
+  "SW":(x,y,x2,y2)=>(x2 < x && y2 > y),
+  "S" :(x,y,x2,y2)=>(x2 === x && y2 > y),
+  "SW":(x,y,x2,y2)=>(x2 > x && y2 > y),
+};
+
+function follower(id,x,y){
+
+  let movementDecided = false;
+  Object.keys(this.players).every((id2) => {
+    if (id2 != "Follower (Bot)") {
+      let [x2,y2]=getRelPos(this,id2,x,y);
+      let nearbyRange = 10;
+      if (Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= nearbyRange) {
+        Object.keys(dirInfo).forEach((dir)=>{
+          if(!movementDecided && followerInfo[dir](x,y,x2,y2) && isSafe(this,x,y,dir)){
+            moveDir(this.players[id],dir);
+            movementDecided = true;
+          }
+        })
+        if(movementDecided){ return false; }
+      }
+      return true;
+    } else {
+      return true;
+    }
+  });
+  if (!movementDecided) {
+    moveToSafeDir(this,id,x,y);
+  }
+}
+
+
+const hunterChar={
+  nearbyRange:30,
+  attackRange:6,
+  approachRange:4,
+}
+
+const hunterInfo={
+  "NW":(x,y,x2,y2)=>(
+    x2 < x - hunterChar.approachRange &&
+    y2 < y - hunterChar.approachRange ),
+  "N" :(x,y,x2,y2)=>(
+    x2 >= x - hunterChar.approachRange &&
+    x2 <= x + hunterChar.approachRange &&
+    y2 < y - hunterChar.approachRange),
+  "NE":(x,y,x2,y2)=>(
+    x2 > x + hunterChar.approachRange &&
+    y2 < y - hunterChar.approachRange),
+  "W" :(x,y,x2,y2)=>(
+    x2 < x - hunterChar.approachRange &&
+    y2 >= y - hunterChar.approachRange &&
+    y2 <= y + hunterChar.approachRange),
+  "E" :(x,y,x2,y2)=>(
+    x2 > x + hunterChar.approachRange &&
+    y2 >= y - hunterChar.approachRange &&
+    y2 <= y + hunterChar.approachRange),
+  "SW":(x,y,x2,y2)=>(
+    x2 < x - hunterChar.approachRange &&
+    y2 > y + hunterChar.approachRange),
+  "S" :(x,y,x2,y2)=>(
+    x2 >= x - hunterChar.approachRange &&
+    x2 <= x + hunterChar.approachRange &&
+    y2 > y + hunterChar.approachRange),
+  "SE":(x,y,x2,y2)=>(
+    x2 > x + hunterChar.approachRange &&
+    y2 > y + hunterChar.approachRange
+  ),
+};
+
+function hunter(id,x,y){
+
+  let movementDecided = false;
+  let noShooting = true;
+  let approachRange=hunterChar.approachRange;
+
+  Object.keys(this.players).every((id2) => {
+    if (id2 != "Hunter (Bot)") {
+      let [x2,y2]=getRelPos(this,id2,x,y);
+
+      if (Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= hunterChar.nearbyRange) {  
+        Object.keys(dirInfo).forEach((dir)=>{
+          if(!movementDecided && hunterInfo[dir](x,y,x2,y2) && isSafe(this,x,y,dir)){
+            moveDir(this.players[id],dir);
+            movementDecided = true;
+            if (dir.length==2 &&
+              Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= hunterChar.attackRange) {
+              shootDir(this.players[id],dir);
+              noShooting = false;
+            }
+          }
+        })
+        if(movementDecided){ return false; }
+        
+        if(
+          x2 > x - approachRange &&
+          x2 < x + approachRange &&
+          y2 > y - approachRange &&
+          y2 < y + approachRange
+        ) {
+          [
+            [x2 < x && y2 <= y,'NW','SE'],
+            [x2 >= x && y2 < y,'NE','SW'],
+            [x2 <= x && y2 > y,'SW','NE'],
+            [x2 > x && y2 >= y,'SE','NW']
+          ].forEach(el=>{
+            if(noShooting && el[0]) {
+              shootDir(this.players[id],el[1]);
+              noShooting = false;
+              if (isSafe(this,x,y,el[2])) {
+                moveDir(this.players[id],el[2]);
+                movementDecided = true;
+              }
+            }
+          })
+          return false;
+        }
+      }
+      return true;
+    } else {
+      return true;
+    }
+  });
+  if (!movementDecided) {moveToSafeDir(this,id,x,y);
+    if (noShooting) {
+      shootDir(this.players[id],'noshoot');
+    }
+  }
 }
 
 function smartBotUpdate(){
@@ -11,790 +275,15 @@ function smartBotUpdate(){
         let x = this.players[id].gridX;
         let y = this.players[id].gridY;
         if (id == "Dodger (Bot)") {
-          if (this.numNearbyAlive(x, y) === 3) {
-            let safeDirections = [];
-            if (
-              !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y - 1) == false &&
-                this.numNearbyAlive(x - 1, y - 1) != 3)
-            ) {
-              safeDirections.push("NW");
-            }
-            if (
-              !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x, y - 1) == false &&
-                this.numNearbyAlive(x, y - 1) != 3)
-            ) {
-              safeDirections.push("N");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y - 1) == false &&
-                this.numNearbyAlive(x + 1, y - 1) != 3)
-            ) {
-              safeDirections.push("NE");
-            }
-            if (
-              !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y) == false &&
-                this.numNearbyAlive(x - 1, y) != 3)
-            ) {
-              safeDirections.push("W");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y) == false &&
-                this.numNearbyAlive(x + 1, y) != 3)
-            ) {
-              safeDirections.push("E");
-            }
-            if (
-              !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y + 1) == false &&
-                this.numNearbyAlive(x - 1, y + 1) != 3)
-            ) {
-              safeDirections.push("SW");
-            }
-            if (
-              !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x, y + 1) == false &&
-                this.numNearbyAlive(x, y + 1) != 3)
-            ) {
-              safeDirections.push("S");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y + 1) == false &&
-                this.numNearbyAlive(x + 1, y + 1) != 3)
-            ) {
-              safeDirections.push("SE");
-            }
-  
-            // console.log(safeDirections.length);
-  
-            let directionToMove = randomChoice(safeDirections);
-            if (directionToMove == "N") {
-              this.players[id].movingUp = true;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = false;
-            } else if (directionToMove == "S") {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = true;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = false;
-            } else if (directionToMove == "W") {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = true;
-              this.players[id].movingRight = false;
-            } else if (directionToMove == "E") {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = true;
-            } else if (directionToMove == "NW") {
-              this.players[id].movingUp = true;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = true;
-              this.players[id].movingRight = false;
-            } else if (directionToMove == "NE") {
-              this.players[id].movingUp = true;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = true;
-            } else if (directionToMove == "SW") {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = true;
-              this.players[id].movingLeft = true;
-              this.players[id].movingRight = false;
-            } else if (directionToMove == "SE") {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = true;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = true;
-            }
-          } else {
-            this.players[id].movingUp = false;
-            this.players[id].movingDown = false;
-            this.players[id].movingLeft = false;
-            this.players[id].movingRight = false;
-          }
-  
-          let someoneOnNW = false;
-          let someoneOnNE = false;
-          let someoneOnSW = false;
-          let someoneOnSE = false;
-          Object.keys(this.players).every((id2) => {
-            if (id2 != "Dodger (Bot)") {
-              let x2 = this.players[id2].gridX;
-              let y2 = this.players[id2].gridY;
-              if (Math.abs(x2 + this.numColumns - x) < Math.abs(x2 - x)) {
-                x2 = x2 + this.numColumns;
-              } else if (Math.abs(x2 - this.numColumns - x) < Math.abs(x2 - x)) {
-                x2 = x2 - this.numColumns;
-              }
-              if (Math.abs(y2 + this.numRows - y) < Math.abs(y2 - y)) {
-                y2 = y2 + this.numRows;
-              } else if (Math.abs(y2 - this.numRows - y) < Math.abs(y2 - y)) {
-                y2 = y2 - this.numRows;
-              }
-              let attackrange = 6;
-              if (
-                x2 < x &&
-                x2 >= x - attackrange &&
-                y2 < y &&
-                y2 >= y - attackrange
-              ) {
-                someoneOnNW = true;
-                return false;
-              } else if (
-                x2 > x &&
-                x2 <= x + attackrange &&
-                y2 < y &&
-                y2 >= y - attackrange
-              ) {
-                someoneOnNE = true;
-                return false;
-              } else if (
-                x2 < x &&
-                x2 >= x - attackrange &&
-                y2 > y &&
-                y2 <= y + attackrange
-              ) {
-                someoneOnSW = true;
-                return false;
-              } else if (
-                x2 > x &&
-                x2 <= x + attackrange &&
-                y2 > y &&
-                y2 <= y + attackrange
-              ) {
-                someoneOnSE = true;
-                return false;
-              }
-              return true;
-            } else {
-              return true;
-            }
-          });
-          if (someoneOnNW) {
-            this.players[id].pressedNW = true;
-          } else if (someoneOnNE) {
-            this.players[id].pressedNE = true;
-          } else if (someoneOnSW) {
-            this.players[id].pressedSW = true;
-          } else if (someoneOnSE) {
-            this.players[id].pressedSE = true;
-          } else {
-            this.players[id].pressedNW = false;
-            this.players[id].pressedNE = false;
-            this.players[id].pressedSW = false;
-            this.players[id].pressedSE = false;
-          }
+          dodger.bind(this)(id,x,y);
         } else if (id == "Follower (Bot)") {
-          let movementDecided = false;
-          Object.keys(this.players).every((id2) => {
-            if (id2 != "Follower (Bot)") {
-              let x2 = this.players[id2].gridX;
-              let y2 = this.players[id2].gridY;
-              if (Math.abs(x2 + this.numColumns - x) < Math.abs(x2 - x)) {
-                x2 = x2 + this.numColumns;
-              } else if (Math.abs(x2 - this.numColumns - x) < Math.abs(x2 - x)) {
-                x2 = x2 - this.numColumns;
-              }
-              if (Math.abs(y2 + this.numRows - y) < Math.abs(y2 - y)) {
-                y2 = y2 + this.numRows;
-              } else if (Math.abs(y2 - this.numRows - y) < Math.abs(y2 - y)) {
-                y2 = y2 - this.numRows;
-              }
-              let nearbyRange = 10;
-              if (Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= nearbyRange) {
-                if (
-                  x2 < x &&
-                  y2 < y &&
-                  (!(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y - 1) == false &&
-                      this.numNearbyAlive(x - 1, y - 1) != 3))
-                ) {
-                  this.players[id].movingUp = true;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = true;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 === x &&
-                  y2 < y &&
-                  (!(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x, y - 1) == false &&
-                      this.numNearbyAlive(x, y - 1) != 3))
-                ) {
-                  this.players[id].movingUp = true;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 > x &&
-                  y2 < y &&
-                  (!(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y - 1) == false &&
-                      this.numNearbyAlive(x + 1, y - 1) != 3))
-                ) {
-                  this.players[id].movingUp = true;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = true;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 < x &&
-                  y2 === y &&
-                  (!(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y) == false &&
-                      this.numNearbyAlive(x - 1, y) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = true;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 > x &&
-                  y2 === y &&
-                  (!(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y) == false &&
-                      this.numNearbyAlive(x + 1, y) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = true;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 < x &&
-                  y2 > y &&
-                  (!(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y + 1) == false &&
-                      this.numNearbyAlive(x - 1, y + 1) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = true;
-                  this.players[id].movingLeft = true;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 === x &&
-                  y2 > y &&
-                  (!(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x, y + 1) == false &&
-                      this.numNearbyAlive(x, y + 1) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = true;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 > x &&
-                  y2 > y &&
-                  (!(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y + 1) == false &&
-                      this.numNearbyAlive(x + 1, y + 1) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = true;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = true;
-                  movementDecided = true;
-                  return false;
-                }
-              }
-              return true;
-            } else {
-              return true;
-            }
-          });
-          if (!movementDecided) {
-            let safeDirections = [];
-            if (
-              !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y - 1) == false &&
-                this.numNearbyAlive(x - 1, y - 1) != 3)
-            ) {
-              safeDirections.push("NW");
-            }
-            if (
-              !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x, y - 1) == false &&
-                this.numNearbyAlive(x, y - 1) != 3)
-            ) {
-              safeDirections.push("N");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y - 1) == false &&
-                this.numNearbyAlive(x + 1, y - 1) != 3)
-            ) {
-              safeDirections.push("NE");
-            }
-            if (
-              !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y) == false &&
-                this.numNearbyAlive(x - 1, y) != 3)
-            ) {
-              safeDirections.push("W");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y) == false &&
-                this.numNearbyAlive(x + 1, y) != 3)
-            ) {
-              safeDirections.push("E");
-            }
-            if (
-              !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y + 1) == false &&
-                this.numNearbyAlive(x - 1, y + 1) != 3)
-            ) {
-              safeDirections.push("SW");
-            }
-            if (
-              !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x, y + 1) == false &&
-                this.numNearbyAlive(x, y + 1) != 3)
-            ) {
-              safeDirections.push("S");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y + 1) == false &&
-                this.numNearbyAlive(x + 1, y + 1) != 3)
-            ) {
-              safeDirections.push("SE");
-            }
-            if (safeDirections.length > 0) {
-              let directionToMove = randomChoice(safeDirections);
-              if (directionToMove == "N") {
-                this.players[id].movingUp = true;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "S") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = true;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "W") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = true;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "E") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = true;
-              } else if (directionToMove == "NW") {
-                this.players[id].movingUp = true;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = true;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "NE") {
-                this.players[id].movingUp = true;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = true;
-              } else if (directionToMove == "SW") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = true;
-                this.players[id].movingLeft = true;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "SE") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = true;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = true;
-              }
-            } else {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = false;
-            }
-          }
+          follower.bind(this)(id,x,y);
         } else if (id == "Hunter (Bot)") {
-          let movementDecided = false;
-          let noShooting = true;
-          Object.keys(this.players).every((id2) => {
-            if (id2 != "Hunter (Bot)") {
-              let x2 = this.players[id2].gridX;
-              let y2 = this.players[id2].gridY;
-              if (Math.abs(x2 + this.numColumns - x) < Math.abs(x2 - x)) {
-                x2 = x2 + this.numColumns;
-              } else if (Math.abs(x2 - this.numColumns - x) < Math.abs(x2 - x)) {
-                x2 = x2 - this.numColumns;
-              }
-              if (Math.abs(y2 + this.numRows - y) < Math.abs(y2 - y)) {
-                y2 = y2 + this.numRows;
-              } else if (Math.abs(y2 - this.numRows - y) < Math.abs(y2 - y)) {
-                y2 = y2 - this.numRows;
-              }
-              let nearbyRange = 30;
-              let attackRange = 6;
-              let approachRange = 4;
-              if (Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= nearbyRange) {
-                if (
-                  x2 < x - approachRange &&
-                  y2 < y - approachRange &&
-                  (!(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y - 1) == false &&
-                      this.numNearbyAlive(x - 1, y - 1) != 3))
-                ) {
-                  this.players[id].movingUp = true;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = true;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  if (
-                    Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= attackRange
-                  ) {
-                    this.players[id].pressedNW = true;
-                    this.players[id].pressedNE = false;
-                    this.players[id].pressedSW = false;
-                    this.players[id].pressedSE = false;
-                    noShooting = false;
-                  }
-                  return false;
-                } else if (
-                  x2 >= x - approachRange &&
-                  x2 <= x + approachRange &&
-                  y2 < y - approachRange &&
-                  (!(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x, y - 1) == false &&
-                      this.numNearbyAlive(x, y - 1) != 3))
-                ) {
-                  this.players[id].movingUp = true;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 > x + approachRange &&
-                  y2 < y - approachRange &&
-                  (!(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y - 1) == false &&
-                      this.numNearbyAlive(x + 1, y - 1) != 3))
-                ) {
-                  this.players[id].movingUp = true;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = true;
-                  movementDecided = true;
-                  if (
-                    Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= attackRange
-                  ) {
-                    this.players[id].pressedNW = false;
-                    this.players[id].pressedNE = true;
-                    this.players[id].pressedSW = false;
-                    this.players[id].pressedSE = false;
-                    noShooting = false;
-                  }
-                  return false;
-                } else if (
-                  x2 < x - approachRange &&
-                  y2 >= y - approachRange &&
-                  y2 <= y + approachRange &&
-                  (!(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y) == false &&
-                      this.numNearbyAlive(x - 1, y) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = true;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 > x + approachRange &&
-                  y2 >= y - approachRange &&
-                  y2 <= y + approachRange &&
-                  (!(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y) == false &&
-                      this.numNearbyAlive(x + 1, y) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = false;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = true;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 < x - approachRange &&
-                  y2 > y + approachRange &&
-                  (!(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x - 1, y + 1) == false &&
-                      this.numNearbyAlive(x - 1, y + 1) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = true;
-                  this.players[id].movingLeft = true;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  if (
-                    Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= attackRange
-                  ) {
-                    this.players[id].pressedNW = false;
-                    this.players[id].pressedNE = false;
-                    this.players[id].pressedSW = true;
-                    this.players[id].pressedSE = false;
-                    noShooting = false;
-                  }
-                  return false;
-                } else if (
-                  x2 >= x - approachRange &&
-                  x2 <= x + approachRange &&
-                  y2 > y + approachRange &&
-                  (!(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x, y + 1) == false &&
-                      this.numNearbyAlive(x, y + 1) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = true;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = false;
-                  movementDecided = true;
-                  return false;
-                } else if (
-                  x2 > x + approachRange &&
-                  y2 > y + approachRange &&
-                  (!(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                    (this.isAlive(x + 1, y + 1) == false &&
-                      this.numNearbyAlive(x + 1, y + 1) != 3))
-                ) {
-                  this.players[id].movingUp = false;
-                  this.players[id].movingDown = true;
-                  this.players[id].movingLeft = false;
-                  this.players[id].movingRight = true;
-                  movementDecided = true;
-                  if (
-                    Math.max(Math.abs(x - x2), Math.abs(y - y2)) <= attackRange
-                  ) {
-                    this.players[id].pressedNW = false;
-                    this.players[id].pressedNE = false;
-                    this.players[id].pressedSW = false;
-                    this.players[id].pressedSE = true;
-                    noShooting = false;
-                  }
-                  return false;
-                } else if (
-                  x2 > x - approachRange &&
-                  x2 < x + approachRange &&
-                  y2 > y - approachRange &&
-                  y2 < y + approachRange
-                ) {
-                  if (x2 < x && y2 <= y) {
-                    this.players[id].pressedNW = true;
-                    this.players[id].pressedNE = false;
-                    this.players[id].pressedSW = false;
-                    this.players[id].pressedSE = false;
-                    noShooting = false;
-                    if (
-                      !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-                      (this.isAlive(x + 1, y + 1) == false &&
-                        this.numNearbyAlive(x + 1, y + 1) != 3)
-                    ) {
-                      this.players[id].movingUp = false;
-                      this.players[id].movingDown = true;
-                      this.players[id].movingLeft = false;
-                      this.players[id].movingRight = true;
-                      movementDecided = true;
-                    }
-                  } else if (x2 >= x && y2 < y) {
-                    this.players[id].pressedNW = false;
-                    this.players[id].pressedNE = true;
-                    this.players[id].pressedSW = false;
-                    this.players[id].pressedSE = false;
-                    noShooting = false;
-                    if (
-                      !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-                      (this.isAlive(x - 1, y + 1) == false &&
-                        this.numNearbyAlive(x - 1, y + 1) != 3)
-                    ) {
-                      this.players[id].movingUp = false;
-                      this.players[id].movingDown = true;
-                      this.players[id].movingLeft = true;
-                      this.players[id].movingRight = false;
-                      movementDecided = true;
-                    }
-                  } else if (x2 <= x && y2 > y) {
-                    this.players[id].pressedNW = false;
-                    this.players[id].pressedNE = false;
-                    this.players[id].pressedSW = true;
-                    this.players[id].pressedSE = false;
-                    noShooting = false;
-                    if (
-                      !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-                      (this.isAlive(x + 1, y - 1) == false &&
-                        this.numNearbyAlive(x + 1, y - 1) != 3)
-                    ) {
-                      this.players[id].movingUp = true;
-                      this.players[id].movingDown = false;
-                      this.players[id].movingLeft = false;
-                      this.players[id].movingRight = true;
-                      movementDecided = true;
-                    }
-                  } else if (x2 > x && y2 >= y) {
-                    this.players[id].pressedNW = false;
-                    this.players[id].pressedNE = false;
-                    this.players[id].pressedSW = false;
-                    this.players[id].pressedSE = true;
-                    noShooting = false;
-                    if (
-                      !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-                      (this.isAlive(x - 1, y - 1) == false &&
-                        this.numNearbyAlive(x - 1, y - 1) != 3)
-                    ) {
-                      this.players[id].movingUp = true;
-                      this.players[id].movingDown = false;
-                      this.players[id].movingLeft = true;
-                      this.players[id].movingRight = false;
-                      movementDecided = true;
-                    }
-                  }
-                  return false;
-                }
-              }
-              return true;
-            } else {
-              return true;
-            }
-          });
-          if (!movementDecided) {
-            let safeDirections = [];
-            if (
-              !(this.numNearbyAlive(x - 1, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y - 1) == false &&
-                this.numNearbyAlive(x - 1, y - 1) != 3)
-            ) {
-              safeDirections.push("NW");
-            }
-            if (
-              !(this.numNearbyAlive(x, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x, y - 1) == false &&
-                this.numNearbyAlive(x, y - 1) != 3)
-            ) {
-              safeDirections.push("N");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y - 1) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y - 1) == false &&
-                this.numNearbyAlive(x + 1, y - 1) != 3)
-            ) {
-              safeDirections.push("NE");
-            }
-            if (
-              !(this.numNearbyAlive(x - 1, y) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y) == false &&
-                this.numNearbyAlive(x - 1, y) != 3)
-            ) {
-              safeDirections.push("W");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y) == false &&
-                this.numNearbyAlive(x + 1, y) != 3)
-            ) {
-              safeDirections.push("E");
-            }
-            if (
-              !(this.numNearbyAlive(x - 1, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x - 1, y + 1) == false &&
-                this.numNearbyAlive(x - 1, y + 1) != 3)
-            ) {
-              safeDirections.push("SW");
-            }
-            if (
-              !(this.numNearbyAlive(x, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x, y + 1) == false &&
-                this.numNearbyAlive(x, y + 1) != 3)
-            ) {
-              safeDirections.push("S");
-            }
-            if (
-              !(this.numNearbyAlive(x + 1, y + 1) in [, , 2, 3]) ||
-              (this.isAlive(x + 1, y + 1) == false &&
-                this.numNearbyAlive(x + 1, y + 1) != 3)
-            ) {
-              safeDirections.push("SE");
-            }
-            if (safeDirections.length > 0) {
-              let directionToMove = randomChoice(safeDirections);
-              if (directionToMove == "N") {
-                this.players[id].movingUp = true;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "S") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = true;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "W") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = true;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "E") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = true;
-              } else if (directionToMove == "NW") {
-                this.players[id].movingUp = true;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = true;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "NE") {
-                this.players[id].movingUp = true;
-                this.players[id].movingDown = false;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = true;
-              } else if (directionToMove == "SW") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = true;
-                this.players[id].movingLeft = true;
-                this.players[id].movingRight = false;
-              } else if (directionToMove == "SE") {
-                this.players[id].movingUp = false;
-                this.players[id].movingDown = true;
-                this.players[id].movingLeft = false;
-                this.players[id].movingRight = true;
-              }
-            } else {
-              this.players[id].movingUp = false;
-              this.players[id].movingDown = false;
-              this.players[id].movingLeft = false;
-              this.players[id].movingRight = false;
-            }
-            if (noShooting) {
-              this.players[id].pressedNW = false;
-              this.players[id].pressedNE = false;
-              this.players[id].pressedSW = false;
-              this.players[id].pressedSE = false;
-            }
-          }
+          hunter.bind(this)(id,x,y);
         }
       });
 }
 
 module.exports = {
-    smartBotUpdate:smartBotUpdate,
-  };
+  smartBotUpdate:smartBotUpdate,
+};
