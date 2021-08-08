@@ -162,8 +162,8 @@ function setGame() {
         socket.on("gameUpdate", processGameUpdate);
         initState();
         startRendering();
-        socket.on("dead", () => {
-          gameEnd("dead");
+        socket.on("dead", (id) => {
+          gameEnd("dead", id);
         });
         socket.on("gameClear", (i, time) => {
           gameEnd("gameClear", i, time);
@@ -221,6 +221,13 @@ function gameEnd(tag, i, time) {
   deadalert.className = "badge bg-warning text-dark";
   deadalert.style.width = "100%";
   deadalert.textContent = (tag == "gameClear") ? "Game clear 🥳" :"Game over 😢";
+  let deadalert_ = document.createElement("p");
+  deadalert_.style.fontSize = "10px";
+  if (tag == "dead" && i != "neutral") {
+    deadalert_.textContent += "You were killed by "+i;
+    deadalert_.insertBefore(br, deadalert_.firstChild);
+    deadalert.appendChild(deadalert_);
+  }
   deadalerth3.appendChild(deadalert);
   y.insertBefore(deadalerth3, y.firstChild);
 

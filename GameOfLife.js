@@ -376,21 +376,26 @@ class Game {
     }
 
     Object.keys(this.players).forEach((socketid) => {
+      let ownerOfTheCell = this.ownerOf(
+        this.players[socketid].gridX,
+        this.players[socketid].gridY
+      );
       if (
         this.players[socketid].alive &&
         this.isAlive(
           this.players[socketid].gridX,
           this.players[socketid].gridY
         ) &&
-        this.ownerOf(
-          this.players[socketid].gridX,
-          this.players[socketid].gridY
-        ) != socketid
+        ownerOfTheCell != socketid
       ) {
+        let ownerIsAPlayer = ownerOfTheCell in this.players;
         for (let i = 0; i < this.gameObjects.length; i++) {
           if (this.gameObjects[i].owner == socketid) {
-            this.gameObjects[i].owner = "neutral";
+            this.gameObjects[i].owner = ownerIsAPlayer? ownerOfTheCell : "neutral";
           }
+        }
+        if (ownerIsAPlayer) {
+          this.players[ownerOfTheCell].initTime -= this.players[socketid].age/2;
         }
         if (
           !this.smartBotIDs.includes(socketid) &&
@@ -410,7 +415,7 @@ class Game {
               .to(socketid)
               .emit("gameClear", i, this.players[socketid].age);
           } else {
-            this.io.to(socketid).emit("dead");
+            this.io.to(socketid).emit("dead", ownerOfTheCell);
           }
         }
         delete this.players[socketid];
@@ -478,6 +483,9 @@ class Game {
         color: this.players[id].color,
       });
     });
+    ffaRanking.sort(function (a, b) {
+      return b.time - a.time;
+    })
   }
 
   gliderUpdate() {
