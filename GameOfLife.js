@@ -265,6 +265,14 @@ class Game {
                 x + aliveNeighbors[0][0],
                 y + aliveNeighbors[0][1]
               ).state;
+            } else if (this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
+            .state == 1) {
+              centerObj.nextState = this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
+              .state;
+            } else if (this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
+            .state == 1) {
+              centerObj.nextState = this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
+              .state;
             } else {
               centerObj.nextState = 1;
             }
@@ -568,12 +576,13 @@ class Game {
         while (!identifierAvailable) {
           identifierAvailable = true;
           identifier = getRandomInt(2**8 - 2); // Change this part depending on the maximum number of players we allow
-          for (let i = 0; i < this.players.length; i++) {
-            if (this.players[i].identifier == identifier) {
+          Object.keys(this.players).every((key) => {
+            if (this.players[key].identifier == identifier) {
               identifierAvailable = false;
-              break;
+              return false;
             }
-          }
+            return true;
+          });
         }
         this.players[socketid] = new Player(
           randCell.gridX,
