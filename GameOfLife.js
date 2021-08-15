@@ -48,6 +48,17 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
+function logDataSize(obj){
+  let total_bytes=0;
+  Object.keys(obj).forEach(key => {
+    let dat = obj[key];
+    dat = (typeof(dat)=='object' && 'byteLength' in dat) ? dat.byteLength : JSON.stringify(dat).length;
+    console.log(`${key} : ${dat}`);
+    total_bytes+=dat;
+  })
+  console.log(`TOTAL ====== ${total_bytes}`);
+}
+
 const keyboardMsgs = [
   "movingDown",
   "movingDown",
@@ -75,7 +86,7 @@ class Cell {
     // this.owner = "";
 
     // this.alive = false; // 0.9;
-    this.state = 0; // 0 means dead, 1 means alive neutral, n >= 2 means alive but owned by the player with identifier n-2.
+    this.state = 0; // 0 means dead, 1 means alive neutral, n >= 2 means alive but owned by the player with identifier n.
   }
 }
 
@@ -108,7 +119,7 @@ class Player {
     this.color = `hsl(${Math.floor(Math.random() * 360)},${Math.floor(
       50 + Math.random() * 30
     )}%,${Math.floor(33 + Math.random() * 33)}%)`;
-    this.identifier = identifier; // This a unique integer assigned to each player
+    this.identifier = identifier; // This a unique integer assigned to each player 2~2**game.LOG2MAXID (0 and 1 reserved for dead cell and alive neutral)
   }
 }
 
@@ -137,11 +148,17 @@ class Game {
     this.gameObjects = []; // array of Cells
     this.createGrid(gameMode, numColumns, numRows);
 
+    // this.buffer = new ArrayBuffer(
+    //   -Math.floor((-this.numColumns * this.numRows) / 32) * 4
+    // );
+    // this.bufferView = new Uint32Array(this.buffer);
+    this.LOG2MAXID = 8; // or 16 32
+    this.UintNArray = Uint8Array; // or Uint16Array Uint32Array
     this.buffer = new ArrayBuffer(
-      -Math.floor((-this.numColumns * this.numRows) / 32) * 4
+      this.numColumns * this.numRows * ( this.LOG2MAXID / 8 )
     );
-    this.bufferView = new Uint32Array(this.buffer);
-
+    this.bufferView = new this.UintNArray(this.buffer);
+    
     this.smartBotUpdate = botlib.smartBotUpdate.bind(this);
 
     // ***** dont forget to clear this interval when you delete the game object *****
@@ -164,17 +181,29 @@ class Game {
     this.updateCoolTime();
     this.encodeBytes();
     // this.io.emit('draw',this.gametime, this.buffer,this.getPlayerPos());
-    this.io.to(this.groupName).emit("gameUpdate", {
+    
+    const res_packet = {
       t: Date.now(),
       gametime: this.gametime,
       buffer: this.buffer,
-      // playerPos: this.getPlayerPos(),
-      // playerColor: this.getPlayerColor(),
       playerNamePosAndColor: this.getPlayerNamePosAndColor(),
-      stateList: this.getStateList(),
       colorList: this.getIdentifierColorFunction(),
-    });
-    //console.log(this.getIdentifierColorFunction());
+    };
+
+    // const res_packet = {
+    //   t: Date.now(),
+    //   gametime: this.gametime,
+    //   buffer: this.buffer,
+    //   // playerPos: this.getPlayerPos(),
+    //   // playerColor: this.getPlayerColor(),
+    //   playerNamePosAndColor: this.getPlayerNamePosAndColor(),
+    //   stateList: this.getStateList(),
+    //   colorList: this.getIdentifierColorFunction_old(),
+    // };
+
+    //logDataSize(res_packet)
+    this.io.to(this.groupName).emit("gameUpdate", res_packet);
+    
     if (this.groupName == "FFA") {
       this.FFARankingUpdate();
       this.io.to(this.groupName).emit("drawScoreBoard", ffaRanking);
@@ -400,10 +429,10 @@ class Game {
           this.players[socketid].gridX,
           this.players[socketid].gridY
         ) &&
-        stateOfTheCell - 2 != this.players[socketid].identifier
+        stateOfTheCell != this.players[socketid].identifier
       ) {
         for (let i = 0; i < this.gameObjects.length; i++) {
-          if (this.gameObjects[i].state - 2 == this.players[socketid].identifier) {
+          if (this.gameObjects[i].state == this.players[socketid].identifier) {
             this.gameObjects[i].state = stateOfTheCell > 1
               ? stateOfTheCell
               : 1;
@@ -411,7 +440,7 @@ class Game {
         }
         if (stateOfTheCell > 1) {
           Object.keys(this.players).every((key) => {
-            if (stateOfTheCell - 2 == this.players[key].identifier) {
+            if (stateOfTheCell == this.players[key].identifier) {
               this.players[key].initTime -=
               this.players[socketid].age / 2;
               ownerOfTheCell = this.players[key].name;
@@ -526,7 +555,7 @@ class Game {
             ggllib.shootCompiled[direction],
             this.players[id].gridX,
             this.players[id].gridY,
-            this.players[id].identifier+2
+            this.players[id].identifier
           );
           didntshoot = false;
         }
@@ -575,7 +604,7 @@ class Game {
         let identifierAvailable = false;
         while (!identifierAvailable) {
           identifierAvailable = true;
-          identifier = getRandomInt(2**8 - 2); // Change this part depending on the maximum number of players we allow
+          identifier = getRandomInt(2**this.LOG2MAXID - 2) + 2; // Change this part depending on the maximum number of players we allow
           Object.keys(this.players).every((key) => {
             if (this.players[key].identifier == identifier) {
               identifierAvailable = false;
@@ -601,18 +630,24 @@ class Game {
     //Use TypedArrays to work with byte data.
     //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
     //signed 32 bits(8bytes) integer for the viewer
-    let uint32num = 0;
-    for (let i = 0; i < this.gameObjects.length; i++) {
-      uint32num += (this.gameObjects[i].state>0) << i % 32;
-      if (i % 32 == 31) {
-        this.bufferView[i >> 5] = uint32num;
-        uint32num = 0;
-      }
-    }
-    if (this.gameObjects.length % 32 != 0) {
-      this.bufferView[this.gameObjects.length >> 5] = uint32num;
-    }
+    this.gameObjects.forEach((d,i) =>{
+      this.bufferView[i]=d.state;
+    })
   }
+
+  // encodeBytes_old() {
+  //   let uint32num = 0;
+  //   for (let i = 0; i < this.gameObjects.length; i++) {
+  //     uint32num += (this.gameObjects[i].state>0) << i % 32;
+  //     if (i % 32 == 31) {
+  //       this.bufferView[i >> 5] = uint32num;
+  //       uint32num = 0;
+  //     }
+  //   }
+  //   if (this.gameObjects.length % 32 != 0) {
+  //     this.bufferView[this.gameObjects.length >> 5] = uint32num;
+  //   }
+  // }
 
   getPlayerPos() {
     let pos = {};
@@ -655,7 +690,15 @@ class Game {
   }
 
   getIdentifierColorFunction() { // returns a list where the n-th entry is the color of the player with identifier n. 
-    let colorList = new Array(2**8 - 2);
+    let colorList={};
+    Object.keys(this.players).forEach((key) => {
+      colorList[this.players[key].identifier] = this.players[key].color; 
+    });
+    return colorList;
+  }
+
+  getIdentifierColorFunction_old() { // returns a list where the n-th entry is the color of the player with identifier n. 
+    let colorList = new Array(2**this.LOG2MAXID);
     Object.keys(this.players).forEach((key) => {
       colorList[this.players[key].identifier] = this.players[key].color; 
     });

@@ -68,7 +68,8 @@ class colorBoard {
         minimap.height + 20 + "px";
     }
 
-    this.cellAlive = new Array(-Math.floor((-numColumns * numRows) / 32) * 32);
+    //this.cbbuffer = new ArrayBuffer(this.numColumns * this.numRows );
+    this.cellAlive = null //new Uint8Array(this.cbbuffer);
 
     this.gridX = new Array(numColumns * numRows);
     this.gridY = new Array(numColumns * numRows);
@@ -361,26 +362,21 @@ function setupVar(_GUI_MODE) {
 
 let gamePlayer = { gridX: 0, gridY: 0 };
 
-//let buffer= new ArrayBuffer(-Math.floor(-Game.numColumns*Game.numRows/32)*4);
-//let bufferView= new Int32Array(this.buffer);
-
-//
-
-function decodeBytes(buffer, cb) {
-  //Use TypedArrays to work with byte data.
-  //https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
-  //unsigned 32 bits(8bytes) integer for the viewer
-  const bits = 32;
-  let bufferView = new Uint32Array(buffer);
-  let uint32num = 0;
-  for (let i = 0; i < bufferView.length; i++) {
-    uint32num = bufferView[i];
-    for (let j = 0; j < bits; j++) {
-      cb.cellAlive[i * bits + j] =
-        ((uint32num >>> j) << (bits - 1)) >>> (bits - 1);
-    }
-  }
-}
+// function decodeBytes(buffer, cb) {
+//   Use TypedArrays to work with byte data.
+//   https://developer.mozilla.org/en-US/docs/Web/JavaScript/Typed_arrays
+//   unsigned 32 bits(8bytes) integer for the viewer
+//   const bits = 32;
+//   let bufferView = new Uint32Array(buffer);
+//   let uint32num = 0;
+//   for (let i = 0; i < bufferView.length; i++) {
+//     uint32num = bufferView[i];
+//     for (let j = 0; j < bits; j++) {
+//       cb.cellAlive[i * bits + j] =
+//         ((uint32num >>> j) << (bits - 1)) >>> (bits - 1);
+//     }
+//   }
+// }
 
 let initTime = 0;
 
@@ -417,7 +413,7 @@ function drawScoreBoard(ranking) {
   }
 }
 
-function draw(id, _gametime, buffer, playerNamePosAndColor, stateList, colorList) {
+function draw(id, _gametime, buffer, playerNamePosAndColor, /*stateList,*/ colorList) {
   myCanvas.width = window.innerWidth;
   myCanvas.height = window.innerHeight;
   myContext.fillStyle = "#000000";
@@ -435,7 +431,10 @@ function draw(id, _gametime, buffer, playerNamePosAndColor, stateList, colorList
   // document.getElementById("clock1").textContent =
   //   "Time:\t" + ((_gametime-initTime)/10).toFixed(1) + "s";
 
-  decodeBytes(buffer, window.cb);
+  //decodeBytes(buffer, window.cb);
+  cb.cellAlive = new Uint8Array(buffer);
+  stateList = window.cb.cellAlive;
+
   if (id in playerNamePosAndColor) {
     gamePlayer = playerNamePosAndColor[id];
   }
@@ -450,7 +449,7 @@ function draw(id, _gametime, buffer, playerNamePosAndColor, stateList, colorList
 
   for (let i = 0; i < window.cb.numRows * window.cb.numColumns; i++) {
     window.cb.drawPixel(
-      (cb.cellAlive[i] ? "cellAlive" : "cellDead") +
+      ((stateList[i]>0) ? "cellAlive" : "cellDead") +
         (GUI_MODE == "SPACEDECAY"
           ? window.cb.color_list[
               window.cb.decay_counts[
@@ -461,7 +460,7 @@ function draw(id, _gametime, buffer, playerNamePosAndColor, stateList, colorList
       window.cb.gridX[i] - gamePlayer.gridX,
       window.cb.gridY[i] - gamePlayer.gridY, 
       stateList[i], 
-      colorList[stateList[i]-2]
+      colorList[stateList[i]]
     );
   }
 
@@ -524,7 +523,7 @@ function render() {
       currentState.gametime,
       currentState.buffer,
       currentState.playerNamePosAndColor,
-      currentState.stateList,
+      //currentState.stateList,
       currentState.colorList,
     );
   }
