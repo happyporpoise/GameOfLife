@@ -56,12 +56,12 @@ function putShape(game,seq,posX,posY) {
   })
 }
 
-function putShape(game,seq,posX,posY,id) {
+function putShape(game,seq,posX,posY,state) {
   //This function is frequently called so it assumes the inputs are in correct form without checking them
   //It does not clean up the space and only injecting true values. Apply mapShape(...,()=>false) in advance if you need.
   seq.forEach((dpos)=>{
-    game.gridToObj(posX+dpos[0],posY+dpos[1]).alive=true;
-    game.gridToObj(posX+dpos[0],posY+dpos[1]).owner=id;
+    // game.gridToObj(posX+dpos[0],posY+dpos[1]).alive=true;
+    game.gridToObj(posX+dpos[0],posY+dpos[1]).state=state;
   })
 }
 

@@ -223,7 +223,7 @@ function gameEnd(tag, i, time) {
   deadalert.textContent = (tag == "gameClear") ? "Game clear 🥳" :"Game over 😢";
   let deadalert_ = document.createElement("p");
   deadalert_.style.fontSize = "10px";
-  if (tag == "dead" && i != "neutral") {
+  if (tag == "dead" && i != "") {
     deadalert_.textContent += "You were killed by "+i;
     deadalert_.insertBefore(br, deadalert_.firstChild);
     deadalert.appendChild(deadalert_);

@@ -5,6 +5,7 @@ const ggllib = require("./Library.js");
 const botlib = require("./Bot.js");
 
 const fs = require("fs");
+const { timeStamp } = require("console");
 let ranking = JSON.parse(
   fs.readFileSync(
     "ranking.json",
@@ -43,6 +44,10 @@ function mod(n, m) {
   return ((n % m) + m) % m;
 }
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
+
 const keyboardMsgs = [
   "movingDown",
   "movingDown",
@@ -67,9 +72,10 @@ class Cell {
     // Store the position of this cell in the grid
     this.gridX = gridX;
     this.gridY = gridY;
-    this.owner = "";
+    // this.owner = "";
 
-    this.alive = false; // 0.9;
+    // this.alive = false; // 0.9;
+    this.state = 0; // 0 means dead, 1 means alive neutral, n >= 2 means alive but owned by the player with identifier n-2.
   }
 }
 
@@ -77,7 +83,7 @@ class Player {
   static width = 10;
   static height = 10;
   static gliderCoolTime = 16; // number of generations
-  constructor(gridX, gridY, name) {
+  constructor(gridX, gridY, name, identifier) {
     this.gridX = gridX;
     this.gridY = gridY;
     this.name = name;
@@ -102,6 +108,7 @@ class Player {
     this.color = `hsl(${Math.floor(Math.random() * 360)},${Math.floor(
       50 + Math.random() * 30
     )}%,${Math.floor(33 + Math.random() * 33)}%)`;
+    this.identifier = identifier; // This a unique integer assigned to each player
   }
 }
 
@@ -164,8 +171,10 @@ class Game {
       // playerPos: this.getPlayerPos(),
       // playerColor: this.getPlayerColor(),
       playerNamePosAndColor: this.getPlayerNamePosAndColor(),
-      ownerList: this.getOwnerList(),
+      stateList: this.getStateList(),
+      colorList: this.getIdentifierColorFunction(),
     });
+    //console.log(this.getIdentifierColorFunction());
     if (this.groupName == "FFA") {
       this.FFARankingUpdate();
       this.io.to(this.groupName).emit("drawScoreBoard", ffaRanking);
@@ -186,10 +195,10 @@ class Game {
   }
 
   isAlive(x, y) {
-    return this.gridToObj(x, y).alive;
+    return this.gridToObj(x, y).state > 0;
   }
-  ownerOf(x, y) {
-    return this.gridToObj(x, y).owner;
+  stateOf(x, y) {
+    return this.gridToObj(x, y).state;
   }
 
   gridToIndex(x, y) {
@@ -245,64 +254,60 @@ class Game {
 
         if (numAlive == 2) {
           // Do nothing
-          centerObj.nextAlive = centerObj.alive;
-          if (centerObj.alive) {
+          if (centerObj.state > 0) {
             if (
               this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
-                .owner ==
+                .state ==
               this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
-                .owner
+                .state
             ) {
-              centerObj.nextOwner = this.gridToObj(
+              centerObj.nextState = this.gridToObj(
                 x + aliveNeighbors[0][0],
                 y + aliveNeighbors[0][1]
-              ).owner;
+              ).state;
             } else {
-              centerObj.nextOwner = "neutral";
+              centerObj.nextState = 1;
             }
           }
         } else if (numAlive == 3) {
           // Make alive
-          centerObj.nextAlive = true;
           if (
             this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
-              .owner ==
+              .state ==
               this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
-                .owner ||
+                .state ||
             this.gridToObj(x + aliveNeighbors[0][0], y + aliveNeighbors[0][1])
-              .owner ==
+              .state ==
               this.gridToObj(x + aliveNeighbors[2][0], y + aliveNeighbors[2][1])
-                .owner
+                .state
           ) {
-            centerObj.nextOwner = this.gridToObj(
+            centerObj.nextState = this.gridToObj(
               x + aliveNeighbors[0][0],
               y + aliveNeighbors[0][1]
-            ).owner;
+            ).state;
           } else if (
             this.gridToObj(x + aliveNeighbors[1][0], y + aliveNeighbors[1][1])
-              .owner ==
+              .state ==
             this.gridToObj(x + aliveNeighbors[2][0], y + aliveNeighbors[2][1])
-              .owner
+              .state
           ) {
-            centerObj.nextOwner = this.gridToObj(
+            centerObj.nextState = this.gridToObj(
               x + aliveNeighbors[1][0],
               y + aliveNeighbors[1][1]
-            ).owner;
+            ).state;
           } else {
-            centerObj.nextOwner = "neutral";
+            centerObj.nextState = 1;
           }
         } else {
           // Make dead
-          centerObj.nextAlive = false;
-          centerObj.nextOwner = "";
+          centerObj.nextState = 0;
         }
       }
     }
 
     // Apply the new state to the cells
     for (let i = 0; i < this.gameObjects.length; i++) {
-      this.gameObjects[i].alive = this.gameObjects[i].nextAlive;
-      this.gameObjects[i].owner = this.gameObjects[i].nextOwner;
+      this.gameObjects[i].state = this.gameObjects[i].nextState;
     }
 
     if (this.gameMode[0] == "SINGLE") {
@@ -314,7 +319,7 @@ class Game {
       } else {
         this.mapClear = true;
         for (let i = 0; i < this.gameObjects.length; i++) {
-          if (this.gameObjects[i].alive) {
+          if (this.gameObjects[i].state > 0) {
             this.mapClear = false;
             return;
           }
@@ -376,26 +381,36 @@ class Game {
     }
 
     Object.keys(this.players).forEach((socketid) => {
-      let ownerOfTheCell = this.ownerOf(
+      let stateOfTheCell = this.stateOf(
         this.players[socketid].gridX,
         this.players[socketid].gridY
       );
+      let ownerOfTheCell = "";
       if (
         this.players[socketid].alive &&
         this.isAlive(
           this.players[socketid].gridX,
           this.players[socketid].gridY
         ) &&
-        ownerOfTheCell != socketid
+        stateOfTheCell - 2 != this.players[socketid].identifier
       ) {
-        let ownerIsAPlayer = ownerOfTheCell in this.players;
         for (let i = 0; i < this.gameObjects.length; i++) {
-          if (this.gameObjects[i].owner == socketid) {
-            this.gameObjects[i].owner = ownerIsAPlayer? ownerOfTheCell : "neutral";
+          if (this.gameObjects[i].state - 2 == this.players[socketid].identifier) {
+            this.gameObjects[i].state = stateOfTheCell > 1
+              ? stateOfTheCell
+              : 1;
           }
         }
-        if (ownerIsAPlayer) {
-          this.players[ownerOfTheCell].initTime -= this.players[socketid].age/2;
+        if (stateOfTheCell > 1) {
+          Object.keys(this.players).every((key) => {
+            if (stateOfTheCell - 2 == this.players[key].identifier) {
+              this.players[key].initTime -=
+              this.players[socketid].age / 2;
+              ownerOfTheCell = this.players[key].name;
+              return false;
+            }
+            return true;
+          });
         }
         if (
           !this.smartBotIDs.includes(socketid) &&
@@ -485,7 +500,7 @@ class Game {
     });
     ffaRanking.sort(function (a, b) {
       return b.time - a.time;
-    })
+    });
   }
 
   gliderUpdate() {
@@ -503,7 +518,7 @@ class Game {
             ggllib.shootCompiled[direction],
             this.players[id].gridX,
             this.players[id].gridY,
-            id
+            this.players[id].identifier+2
           );
           didntshoot = false;
         }
@@ -526,7 +541,7 @@ class Game {
       !this.smartBotIDs.includes(name) &&
       !this.towerids.includes(name)
     ) {
-      this.players[socketid] = new Player(0, 0, name);
+      this.players[socketid] = new Player(0, 0, name, 0);
       this.players[socketid].initTime = this.gametime;
       this.io
         .to(this.groupName)
@@ -542,17 +557,30 @@ class Game {
       }
       if (this.gameMode[1] == "2") {
         this.smartBotIDs = ["Hunter (Bot)"];
-        this.addPlayer("Hunter (Bot)", "Hunter (Bot)");
+        this.addPlayer("Hunter (Bot)", "Hunter (Bot)", 1);
       }
     } else {
       let randCell =
         this.gameObjects[Math.floor(this.gameObjects.length * Math.random())];
-      if (randCell.alive == 0) {
+      if (randCell.state == 0) {
+        let identifier = 0;
+        let identifierAvailable = false;
+        while (!identifierAvailable) {
+          identifierAvailable = true;
+          identifier = getRandomInt(2**8 - 2); // Change this part depending on the maximum number of players we allow
+          for (let i = 0; i < this.players.length; i++) {
+            if (this.players[i].identifier == identifier) {
+              identifierAvailable = false;
+              break;
+            }
+          }
+        }
         this.players[socketid] = new Player(
           randCell.gridX,
           randCell.gridY,
-          name
+          name, identifier
         );
+        //console.log(`Player name:${this.players[socketid].name}, identifier: ${this.players[socketid].identifier}`);
         this.players[socketid].initTime = this.gametime;
       } else {
         this.addPlayer(socketid, name);
@@ -566,7 +594,7 @@ class Game {
     //signed 32 bits(8bytes) integer for the viewer
     let uint32num = 0;
     for (let i = 0; i < this.gameObjects.length; i++) {
-      uint32num += this.gameObjects[i].alive << i % 32;
+      uint32num += (this.gameObjects[i].state>0) << i % 32;
       if (i % 32 == 31) {
         this.bufferView[i >> 5] = uint32num;
         uint32num = 0;
@@ -609,12 +637,20 @@ class Game {
     return namePosAndCol;
   }
 
-  getOwnerList() {
-    let ownerList = [];
+  getStateList() { // list of integers representing the states of the cells; needs to be combined with encodeBytes()
+    let stateList = [];
     for (let i = 0; i < this.gameObjects.length; i++) {
-      ownerList.push(this.gameObjects[i].owner);
+      stateList.push(this.gameObjects[i].state);
     }
-    return ownerList;
+    return stateList;
+  }
+
+  getIdentifierColorFunction() { // returns a list where the n-th entry is the color of the player with identifier n. 
+    let colorList = new Array(2**8 - 2);
+    Object.keys(this.players).forEach((key) => {
+      colorList[this.players[key].identifier] = this.players[key].color; 
+    });
+    return colorList;
   }
 }
 
